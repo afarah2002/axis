@@ -36,7 +36,13 @@ class MyDetectorConstruction(G4VUserDetectorConstruction):
 		# gdml = "fullmodelV10202ionizerassembly1020201hollowdischargeinjectioncathode1_Aluminum.gdml"
 		# self.gdml_parser.Read("bulkhead.gdml")
 		self.world = self.gdml_parser.GetWorldVolume()
-
+		# xenon = G4Material.GetMaterial("G4_Xe")
+		# au = G4Material.GetMaterial("G4_Au", 1)
+		# GC.ConstructBox("xenon",
+		# 								au,
+		# 								[10,0,0],
+		# 								cm,
+		# 								[1,5,5])
 		# gold = G4Material.GetMaterial("G4_Au", 1)
 		# GC.ConstructSphere("sphere1", 
 		# 					gold, 
