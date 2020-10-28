@@ -14,10 +14,10 @@ class Visualizer(object):
 		gApplyUICommand("/vis/drawVolume")
 
 		gApplyUICommand("/vis/viewer/select " + viewer_name)
-		gApplyUICommand("/vis/ogl/set/displayListLimit 100000")
-		gApplyUICommand("/vis/scene/add/trajectories")
+		# gApplyUICommand("/vis/ogl/set/displayListLimit 100000")
+		# gApplyUICommand("/vis/scene/add/trajectories")
 
-		gApplyUICommand("/tracking/storeTrajectory 1")
+		# gApplyUICommand("/tracking/storeTrajectory 1")
 		gApplyUICommand("/vis/scene/endOfEventAction accumulate")
 		gApplyUICommand("/vis/scene/endOfRunAction accumulate")
 
