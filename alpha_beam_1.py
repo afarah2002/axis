@@ -26,11 +26,14 @@ import time
 plt.rcParams["font.family"] = "Times New Roman"
 # -------- FILE IMPORTS ------- #
 # from arrow_generator import Arrow3D
+global stoppingRangesList
+stoppingRangesList = []
 
 #----------code starts here!----------#
 class GetGlobalData(object):
 
 	def __init__(self):
+		
 		pass
 
 	def get_stopping_range(self):
@@ -47,18 +50,31 @@ class DataAnalysis(object):
 
 	def __init__(self):
 
-		self.stoppingRangesList = []
+		stoppingRangesList[:] = []
 
-	def data_collection(self, range):
+	def data_collection(self, rng):
 
-		self.stoppingRangesList.append(range)
+		stoppingRangesList.append(rng)
+		# energies.append(energy)
 
 	def compute_stopping_range(self):
 
-		amounts, vals = np.histogram(self.stoppingRangesList,100)
+		# print stoppingRangesList
+
+		# plt.hist(stoppingRangesList,100)
+		# # ax2.scatter(energies, stoppingRangesList)
+		# plt.show()
+		amounts, vals = np.histogram(stoppingRangesList,100)
 		index = list(amounts).index(max(amounts))
 		peak_val = vals[index]
-		# print(len(self.stoppingRangesList))
+		print("\n")
+		print("\n")
+		print("\n")
+		print(len(stoppingRangesList))
+		print "Peak stopping range: ", peak_val, "mm"
+		print("\n")
+		print("\n")
+		print("\n")
 		global stoppingRange_final
 		stoppingRange_final = peak_val
 
@@ -66,7 +82,6 @@ class DataAnalysis(object):
 
 
 DA = DataAnalysis()
-
 
 '''																									     											   '''
    #                         								   ____________   _  ____________ 								                           #
@@ -83,7 +98,7 @@ class MyPrimaryGeneratorAction(G4VUserPrimaryGeneratorAction):
 	def __init__(self, particle, energy, energyUnit, emitterCount, momentumArray):
 		G4VUserPrimaryGeneratorAction.__init__(self)
 		self.particleGun_outer = G4ParticleGun(1)
-		self.particleGun_inner = G4ParticleGun(1)
+		# self.particleGun_inner = G4ParticleGun(1)
 		self.energy = energy
 		self.energyUnit = energyUnit
 		self.emitterCount = emitterCount
@@ -101,8 +116,8 @@ class MyPrimaryGeneratorAction(G4VUserPrimaryGeneratorAction):
 		energy = self.energy
 		self.particleGun_outer.SetParticleByName(self.particle) # define particle
 		self.particleGun_outer.SetParticleEnergy(energy*energyUnit) # define particle energy 
-		self.particleGun_inner.SetParticleByName(self.particle) # define particle
-		self.particleGun_inner.SetParticleEnergy(energy*energyUnit) # define particle energy 
+		# self.particleGun_inner.SetParticleByName(self.particle) # define particle
+		# self.particleGun_inner.SetParticleEnergy(energy*energyUnit) # define particle energy 
 
 		# emitter locations on outer/inner surfaces of radioisotope sphere
 		# outer, 
@@ -128,10 +143,11 @@ class MyPrimaryGeneratorAction(G4VUserPrimaryGeneratorAction):
 		emitterNumber = int(np.sqrt(self.emitterCount))
 		emitterLocations = np.indices((emitterNumber, emitterNumber)).T.flatten().reshape(emitterNumber**2,2)
 
-		# print(locations)
+		# print(emitterLocations)
+		# time.sleep(2)
 
 		for loc in emitterLocations:
-			locationArray = [-25,loc[0]-int(emitterNumber/2), loc[1]-int(emitterNumber/2)]
+			locationArray = [-250,loc[0]-int(emitterNumber/2), loc[1]-int(emitterNumber/2)]
 			momentumArray = self.momentumArray
 			# locationArray = [loc[0], loc[1], loc[2]] # spherical
 			# momentumArray_outer = np.subtract(locationArray,0)
@@ -168,10 +184,10 @@ class MyRunAction(G4UserRunAction):
 	"My Run Action"
 
 	def EndOfRunAction(self, run):
-		# print "*** End of Run"
-		# print "- Run sammary : (id= %d, #events= %d)" \
-		# % (run.GetRunID(), run.GetNumberOfEventToBeProcessed())
-		DA.compute_stopping_range()
+		print "*** End of Run"
+		print "- Run sammary : (id= %d, #events= %d)" \
+		% (run.GetRunID(), run.GetNumberOfEventToBeProcessed())
+		stoppingRangesList[:] = []
 		pass
 
 # ------------------------------------------------------------------
@@ -179,6 +195,8 @@ class MyEventAction(G4UserEventAction):
 	"My Event Action"
 
 	def EndOfEventAction(self, event):
+		DA.compute_stopping_range()
+		print "*** End of Event"
 		pass
 
 # ------------------------------------------------------------------
@@ -186,19 +204,30 @@ class MySteppingAction(G4UserSteppingAction):
 	"My Stepping Action"
 
 	def UserSteppingAction(self, step):
+		# stoppingRangesList[:] = []
+		# energies[:] = []
 		preStepPoint = step.GetPreStepPoint()
 		postStepPoint = step.GetPostStepPoint()
 		track = step.GetTrack()
 		parentId = track.GetParentID()
+		trackId = track.GetTrackID()
 		particleName = track.GetDefinition().GetParticleName() 
 		touchable = track.GetTouchable()
 		KE = track.GetKineticEnergy()
 
-		stoppedThreshold = 0.1 # MeV
+		edep = step.GetTotalEnergyDeposit()
 
-		if parentId == 0:
-			# print particleName, " ", KE, " ", 25+postStepPoint.GetPosition().x
-			if KE < stoppedThreshold:
-				stoppingRange = 25 + postStepPoint.GetPosition().x
-				DA.data_collection(stoppingRange)
+
+
+		# stoppedThreshold = .1 # 10 eV, less than the 1st ionization energy of Xe
+		# print edep
+
+		# if edep > 0.999*5.3:
+			# if KE < stoppedThreshold:
+			# print particleName, " ", edep, " ", 25+postStepPoint.GetPosition().x
+		if KE == 0.0:
+			stoppingRange = 250 + postStepPoint.GetPosition().x
+			print parentId, trackId, stoppingRange, KE
+			DA.data_collection(stoppingRange)
+
 

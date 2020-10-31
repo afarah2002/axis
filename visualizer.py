@@ -14,14 +14,15 @@ class Visualizer(object):
 		gApplyUICommand("/vis/drawVolume")
 
 		gApplyUICommand("/vis/viewer/select " + viewer_name)
-		# gApplyUICommand("/vis/ogl/set/displayListLimit 100000")
-		# gApplyUICommand("/vis/scene/add/trajectories")
+		gApplyUICommand("/vis/ogl/set/displayListLimit 100000")
+		gApplyUICommand("/vis/scene/add/trajectories")
 
 		# gApplyUICommand("/tracking/storeTrajectory 1")
+		gApplyUICommand("/tracking/verbose ")
 		gApplyUICommand("/vis/scene/endOfEventAction accumulate")
 		gApplyUICommand("/vis/scene/endOfRunAction accumulate")
 
 		gApplyUICommand("/vis/viewer/set/viewpointThetaPhi " + str(viz_theta) + " " + str(viz_phi))
 		# gApplyUICommand("/vis/viewer/zoom 1.00001")
-		
+		# gApplyUICommand("/gun/List")
 		gApplyUICommand("/vis/viewer/update")

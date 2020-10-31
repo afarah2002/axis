@@ -12772,11 +12772,11 @@ def stopping_range(data):
 
 	return peak_val
 
-maxEnergy = 0.1 # maximum energy a stopped alpha can have, in MeV
+maxEnergy = 0.000199# maximum energy a stopped alpha can have, in MeV
 x_stopped, y_stopped = stopped_alphas(x,y,maxEnergy)
 
 title1 = "Distribution of " +r'$\alpha$'+ " stopping range in pure Xe gas, \n" +r'$\rho$'+ " = " + "0.0556 g/cm" r'$^3$'
-n_bins = 100
+n_bins = 50
 ax1.set_title(title1)
 ax1.set_xlabel("Stopping range (mm)")
 ax1.hist(y_stopped,n_bins)

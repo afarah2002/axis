@@ -34,6 +34,7 @@ GGD = GetGlobalData()
 # gRunManager.SetUserInitialization(exN03geom)
 
 ######### CODE STARTS HERE ##########
+physicsList = QGSP_BERT()
 
 # mouse stuff
 mouse = pymouse.PyMouse()
@@ -56,7 +57,7 @@ class SpaceConstructor(object):
 		radioisotope = G4Material("U235", 92,  235.0439299*g/mole, 19.1*g/cm3)
 		material1 = gNistManager.FindOrBuildMaterial("G4_C")
 		# GC.ConstructBox("carbon_plate", material1, [0,0,0], mm,[1,20,20])
-		g4py.ezgeom.ResizeWorld(50.*mm, 50.*mm, 50.*mm)
+		g4py.ezgeom.ResizeWorld(500.*mm, 2500.*mm, 2500.*mm)
 		# GC.ConstructBox("uranium", radioisotope, [-49.5/2,0,0], mm, [1,49.5,49.5])
 
 
@@ -76,11 +77,13 @@ class Main(object):
 	def run(self, densities, particleEnergy, particle, viz_theta, viz_phi):
 		self.stoppingRanges = []
 		for d in densities:
-
+			DA
+			print(d)
+			# d = .0556
 			xe_highPressure = G4Material("gaseousXenon", 54., 131.293*g/mole, d*g/cm3)
 			g4py.ezgeom.SetWorldMaterial(xe_highPressure)
 			# alphaEnergy = 5.49 # MeV
-			PGA_1 = MyPrimaryGeneratorAction(particle, particleEnergy, MeV, 100, [1,0,0])
+			PGA_1 = MyPrimaryGeneratorAction(particle, particleEnergy, MeV, 2500, [1,0,0])
 			gRunManager.SetUserAction(PGA_1)
 			myEA = MyEventAction()
 			gRunManager.SetUserAction(myEA)
@@ -159,10 +162,10 @@ if __name__ == '__main__':
 
 	# energyRange = np.arange(0.1,10,.1) # MeV
 	energyRange = [5.3,4.9,5.1,5.6,5.8,5.5]
-	densityRange = list(np.arange(0.000001,.1,0.001)) # g/cm3
+	# densityRange = list(np.arange(0.00000001,.005,0.0001)) # g/cm3
+	densityRange =  list(np.arange(0.01000001,1., .001))
 	stoppingRangesList = []
 
-	physicsList = QGSP_BIC_HP()
 	gRunManager.SetUserInitialization(physicsList)
 	# gApplyUICommand("/process/em/fluo true")
 	# gApplyUICommand("/process/em/auger true")
@@ -174,7 +177,6 @@ if __name__ == '__main__':
 	# particle = "e+"
 	# particle = "proton"
 	MN = Main(viewer_name)
-	DA
 	GGD
 	# gApplyUICommand("/vis/sceneHandler/create OGLSX OGLSX")
 	# gApplyUICommand("/vis/viewer/create OGLSX " + viewer_name)
@@ -199,15 +201,18 @@ if __name__ == '__main__':
 
 	# for e in energyRange:
 
-	energy = energyRange[5]
+	# energy = energyRange[0]
 
-	open("data/"+str(energy)+".txt").close()
-	file = open("data/"+str(energy)+".txt", "a")
 
-	MN
-	stoppingRanges = MN.run(densityRange, energy, particle, theta, phi)
-	stoppingRangesList.append(stoppingRanges)
+	# energy = 5.49
+	for e in energyRange:
+		open("data_01/"+str(e)+".txt").close()
+		file = open("data_01/"+str(e)+".txt", "a")
+		# e = 5.49
+		MN
+		stoppingRanges = MN.run(densityRange, e, particle, theta, phi)
+		stoppingRangesList.append(stoppingRanges)
 	# time.sleep(.005)
 
 
-	MN.plotter(densityRange, energyRange, stoppingRangesList)
+	# MN.plotter(densityRange, energyRange, stoppingRangesList)

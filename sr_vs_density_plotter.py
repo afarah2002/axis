@@ -54,7 +54,7 @@ def plotter(densities, energies, SRList):
 	axes = plt.gca()
 	axes.set_xlim([min(xs),max(xs)])
 	axes.set_ylim([min(ys),max(ys)])
-	axes.set_zlim([0,50])
+	axes.set_zlim([0,20])
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel(ylabel)
 	ax.set_zlabel(zlabel)
@@ -77,11 +77,11 @@ def plotter(densities, energies, SRList):
 if __name__ == '__main__':
 	energyRange = [5.3,4.9,5.1,5.6,5.8,5.5]
 	# energyRange = [5.3,4.9]
-	densityRange = list(np.arange(0.000001,.1,0.001)) # g/cm3
+	densityRange = list(np.arange(0.01000001,1., .001)) # g/cm3
 	# energy = 5.3
 	SRList = []
 	for energy in energyRange:
-		file = "data/"+str(energy)+".txt"
+		file = "data_01/"+str(energy)+".txt"
 		stopping_ranges = read_data(file)
 		SRList.append(stopping_ranges)
 		print stopping_ranges
