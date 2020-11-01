@@ -47,30 +47,32 @@ def plotter(densities, energies, SRList):
 	# plt.scatter(densities, self.stoppingRanges)
 	# plt.show()
 
-	fig = plt.figure()
+	# fig = plt.figure()
 	# first subplot: a 3D scatter plot of positions
-	ax = fig.add_subplot(111, projection='3d')
-
-	axes = plt.gca()
-	axes.set_xlim([min(xs),max(xs)])
-	axes.set_ylim([min(ys),max(ys)])
-	axes.set_zlim([0,20])
-	ax.set_xlabel(xlabel)
-	ax.set_ylabel(ylabel)
-	ax.set_zlabel(zlabel)
+	# ax = fig.add_subplot(111, projection='3d')
+	# ax = fig.add_subplot(111)
+	# axes = plt.gca()
+	# ax.set_zlabel(zlabel)
 
 	# print(xs)
 	# print(ys)
 	# print(zs)
 
 	for i in np.arange(0, len(ys)): # energies is on the y
-		ax.plot(xs, list(ys[i]*np.ones(len(xs))), zs[i])
+		# ax.plot(xs, list(ys[i]*np.ones(len(xs))), zs[i])
+		plt.plot(xs, zs[i])
 
 
+	plt.xlim([min(xs),max(xs)])
+	plt.ylim([min(zs[0]),max(zs[0])])
+	# axes.set_zlim([0,20])
+	plt.xlabel(xlabel)
+	plt.ylabel(zlabel)
 
-	plt.title(zlabel + " vs " + xlabel + "vs" + ylabel)
+
+	plt.title(zlabel + " vs " + xlabel)
 	plt.grid()
-	plt.legend(("Po210","Po209", "Po208", "Pu238", "Cm244", "Am241"),loc=6)
+	plt.legend(("Po210, energy = " + str(ys[0]),"Po209, energy = " + str(ys[1]), "Po208, energy = " + str(ys[2]), "Pu238, energy = " + str(ys[3]), "Cm244, energy = " + str(ys[4]), "Am241, energy = " + str(ys[5])),loc=5)
 	# plt.draw() 
 	plt.show()
 
