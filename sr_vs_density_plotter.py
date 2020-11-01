@@ -79,7 +79,7 @@ def plotter(densities, energies, SRList):
 if __name__ == '__main__':
 	energyRange = [5.3,4.9,5.1,5.6,5.8,5.5]
 	# energyRange = [5.3,4.9]
-	densityRange = list(np.arange(0.01000001,1., .001)) # g/cm3
+	densityRange =  list(np.arange(0.0075000001,.06, .001))
 	# energy = 5.3
 	SRList = []
 	for energy in energyRange:
