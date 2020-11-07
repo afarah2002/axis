@@ -147,7 +147,7 @@ class MyPrimaryGeneratorAction(G4VUserPrimaryGeneratorAction):
 		# time.sleep(2)
 
 		for loc in emitterLocations:
-			locationArray = [-250,loc[0]-int(emitterNumber/2), loc[1]-int(emitterNumber/2)]
+			locationArray = [-1250,loc[0]-int(emitterNumber/2), loc[1]-int(emitterNumber/2)]
 			momentumArray = self.momentumArray
 			# locationArray = [loc[0], loc[1], loc[2]] # spherical
 			# momentumArray_outer = np.subtract(locationArray,0)
@@ -225,9 +225,11 @@ class MySteppingAction(G4UserSteppingAction):
 		# if edep > 0.999*5.3:
 			# if KE < stoppedThreshold:
 			# print particleName, " ", edep, " ", 25+postStepPoint.GetPosition().x
-		if KE == 0.0:
-			stoppingRange = 250 + postStepPoint.GetPosition().x
-			print parentId, trackId, stoppingRange, KE
-			DA.data_collection(stoppingRange)
-
-
+		# if KE == 0.0 :
+		# 	print parentId, trackId, stoppingRange, KE, particleName
+		# if parentId == 0 and KE == 0.0:
+		# 	stoppingRange   = 1250 + postStepPoint.GetPosition().x
+		# 	print parentId, trackId, stoppingRange, KE, particleName
+		# 	DA.data_collection(stoppingRange)
+		if particleName == "e-":
+			print parentId, trackId, 1250 + preStepPoint.GetPosition().x, KE, edep
