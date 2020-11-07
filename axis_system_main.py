@@ -57,7 +57,7 @@ class SpaceConstructor(object):
 		radioisotope = G4Material("U235", 92,  235.0439299*g/mole, 19.1*g/cm3)
 		material1 = gNistManager.FindOrBuildMaterial("G4_C")
 		# GC.ConstructBox("carbon_plate", material1, [0,0,0], mm,[1,20,20])
-		g4py.ezgeom.ResizeWorld(500.*mm, 2500.*mm, 2500.*mm)
+		g4py.ezgeom.ResizeWorld(2500.*mm, 2500.*mm, 2500.*mm)
 		# GC.ConstructBox("uranium", radioisotope, [-49.5/2,0,0], mm, [1,49.5,49.5])
 
 
@@ -74,16 +74,27 @@ class Main(object):
 		self.stoppingRanges = []
 		self.name = viewer_name
 
-	def run(self, densities, particleEnergy, particle, viz_theta, viz_phi):
+	def run(self, densities, particleEnergy, particle, viz_theta, viz_phi, prop):
 		self.stoppingRanges = []
 		for d in densities:
 			DA
 			print(d)
-			# d = .0556
-			xe_highPressure = G4Material("gaseousXenon", 54., 131.293*g/mole, d*g/cm3)
-			g4py.ezgeom.SetWorldMaterial(xe_highPressure)
+			if prop == "cesium":
+				prop_gas = G4Material("prop_cesium", 55., 132.90545*g/mole, d*g/cm3)
+			if prop == "bismuth":
+				prop_gas = G4Material("prop_bismuth", 83., 208.9804*g/mole, d*g/cm3)
+			if prop == "mercury":
+				prop_gas = G4Material("prop_mercury", 80., 200.59*g/mole, d*g/cm3)
+			if prop == "iodine":
+				prop_gas = G4Material("prop_iodine", 53., 126.90447*g/mole, d*g/cm3)
+			if prop == "xenon":
+				prop_gas = G4Material("gaseousProp", 54., 131.293*g/mole, d*g/cm3)
+
+			print(prop,"\n")
+
+			g4py.ezgeom.SetWorldMaterial(prop_gas)
 			# alphaEnergy = 5.49 # MeV
-			PGA_1 = MyPrimaryGeneratorAction(particle, particleEnergy, MeV, 2500, [1,0,0])
+			PGA_1 = MyPrimaryGeneratorAction(particle, particleEnergy, MeV, 1600, [1,0,0])
 			gRunManager.SetUserAction(PGA_1)
 			myEA = MyEventAction()
 			gRunManager.SetUserAction(myEA)
@@ -97,7 +108,7 @@ class Main(object):
 
 			stoppingRange = GGD.get_stopping_range()
 			self.stoppingRanges.append(stoppingRange)
-			file.writelines(str(stoppingRange)+"\n")
+			# SR_file.writelines(str(stoppingRange)+"\n")
 
 		return self.stoppingRanges
 
@@ -161,9 +172,12 @@ class Main(object):
 if __name__ == '__main__':
 
 	# energyRange = np.arange(0.1,10,.1) # MeV
+	propellants = ["cesium","bismuth","mercury","iodine","xenon"]
+	# propellants = ["cesium","bismuth","mercury","xenon","iodine"]
+
 	energyRange = [5.3,4.9,5.1,5.6,5.8,5.5]
 	# densityRange = list(np.arange(0.00000001,.005,0.0001)) # g/cm3
-	densityRange =  list(np.arange(0.01000001,1., .001))
+	densityRange =  		list(np.arange(0.006,.05, .0001))
 	stoppingRangesList = []
 
 	gRunManager.SetUserInitialization(physicsList)
@@ -205,13 +219,30 @@ if __name__ == '__main__':
 
 
 	# energy = 5.49
-	for e in energyRange:
-		open("data_01/"+str(e)+".txt").close()
-		file = open("data_01/"+str(e)+".txt", "a")
-		# e = 5.49
-		MN
-		stoppingRanges = MN.run(densityRange, e, particle, theta, phi)
-		stoppingRangesList.append(stoppingRanges)
+
+	for prop in propellants:
+
+		for e in energyRange:
+			# SR_filename = prop + "2/"+str(e)+"_SR.txt"
+			# elec_genDep_filename = prop + "2/"+str(e)+"_elec_genDep.txt"
+			# elec_genEn_filename = prop + "2/"+str(e)+"_elec_genEn.txt"
+
+			# os.system("touch " + SR_filename)
+			# os.system("touch " + elec_genDep_filename)
+			# os.system("touch " + elec_genEn_filename)
+
+
+			# open(SR_filename).close()
+			# open(elec_genDep_filename).close()
+			# open(elec_genEn_filename).close()
+
+			# SR_file = open(SR_filename, "a")
+			# elec_file = open(elec_genDep_filename, "a")
+			# elec_file = open(elec_genEn_filename, "a")
+			# e = 5.49
+			MN
+			stoppingRanges = MN.run(densityRange, e, particle, theta, phi, prop)
+			stoppingRangesList.append(stoppingRanges)
 	# time.sleep(.005)
 
 
