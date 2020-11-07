@@ -47,17 +47,11 @@ def plotter(densities, RI_densities, energies, SRList):
 	# plt.scatter(densities, self.stoppingRanges)
 	# plt.show()
 
-	fig = plt.figure()
+	# fig = plt.figure()
 	# first subplot: a 3D scatter plot of positions
 	# ax = fig.add_subplot(111, projection='3d')
 	ax = fig.add_subplot(211)
 	ax2 = fig.add_subplot(212)
-	# axes = plt.gca()
-	# ax.set_zlabel(zlabel)
-
-	# print(xs)
-	# print(ys)
-	# print(zs)
 
 	# RI_masses = np.multiply(RI_densities, np.multiply(4*np.pi/3, np.power(np.subtract(2,zs[i]),3)))
 	Chamber_volume = (np.pi*2**2)*4# cm3
@@ -103,11 +97,13 @@ def plotter(densities, RI_densities, energies, SRList):
 	ax.set_title(zlabel + " vs " + xlabel)
 	ax.grid()
 
+
 	ax2.set_xlabel("Propellant_density (g/cm3)")	
 	ax2.set_ylabel("alpha_mass (g)"	)
 
 	ax2.grid()
 	ax.legend(("Po210, energy = " + str(ys[0]),"Po209, energy = " + str(ys[1]), "Po208, energy = " + str(ys[2]), "Pu238, energy = " + str(ys[3]), "Cm244, energy = " + str(ys[4]), "Am241, energy = " + str(ys[5])),loc=5)
+
 	# plt.draw() 
 	plt.show()
 
@@ -116,6 +112,7 @@ if __name__ == '__main__':
 	RI_densities = [9.196, 9.196, 9.196, 19.8, 13.51, 12.] # g/cm3    Po210, Po209, Po208, Pu238, Cm244, Am241
 	# energyRange = [5.3,4.9]
 	densityRange =  list(np.arange(0.006,.05, .0001))
+
 	# energy = 5.3
 	SRList = []
 

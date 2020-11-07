@@ -177,7 +177,9 @@ if __name__ == '__main__':
 
 	energyRange = [5.3,4.9,5.1,5.6,5.8,5.5]
 	# densityRange = list(np.arange(0.00000001,.005,0.0001)) # g/cm3
-	densityRange =  		list(np.arange(0.006,.05, .0001))
+
+	densityRange =  list(np.arange(0.006,.05, .0001))
+
 	stoppingRangesList = []
 
 	gRunManager.SetUserInitialization(physicsList)
