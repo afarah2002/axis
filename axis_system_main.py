@@ -57,7 +57,7 @@ class SpaceConstructor(object):
 		radioisotope = G4Material("U235", 92,  235.0439299*g/mole, 19.1*g/cm3)
 		material1 = gNistManager.FindOrBuildMaterial("G4_C")
 		# GC.ConstructBox("carbon_plate", material1, [0,0,0], mm,[1,20,20])
-		g4py.ezgeom.ResizeWorld(2500.*mm, 2500.*mm, 2500.*mm)
+		g4py.ezgeom.ResizeWorld(25.*mm, 25.*mm, 25.*mm)
 		# GC.ConstructBox("uranium", radioisotope, [-49.5/2,0,0], mm, [1,49.5,49.5])
 
 
@@ -74,7 +74,7 @@ class Main(object):
 		self.stoppingRanges = []
 		self.name = viewer_name
 
-	def run(self, densities, particleEnergy, particle, viz_theta, viz_phi, prop):
+	def run(self, densities, particleEnergy, particle, particleCount, viz_theta, viz_phi, prop):
 		self.stoppingRanges = []
 		for d in densities:
 			DA
@@ -94,7 +94,7 @@ class Main(object):
 
 			g4py.ezgeom.SetWorldMaterial(prop_gas)
 			# alphaEnergy = 5.49 # MeV
-			PGA_1 = MyPrimaryGeneratorAction(particle, particleEnergy, MeV, 1600, [1,0,0])
+			PGA_1 = MyPrimaryGeneratorAction(particle, particleEnergy, MeV, particleCount, [1,0,0])
 			gRunManager.SetUserAction(PGA_1)
 			myEA = MyEventAction()
 			gRunManager.SetUserAction(myEA)
@@ -106,8 +106,8 @@ class Main(object):
 			gRunManager.Initialize()
 			gRunManager.BeamOn(1)
 
-			stoppingRange = GGD.get_stopping_range()
-			self.stoppingRanges.append(stoppingRange)
+			# stoppingRange = GGD.get_stopping_range()
+			# self.stoppingRanges.append(stoppingRange)
 			# SR_file.writelines(str(stoppingRange)+"\n")
 
 		return self.stoppingRanges
@@ -175,10 +175,15 @@ if __name__ == '__main__':
 	propellants = ["cesium","bismuth","mercury","iodine","xenon"]
 	# propellants = ["cesium","bismuth","mercury","xenon","iodine"]
 
-	energyRange = [5.3,4.9,5.1,5.6,5.8,5.5]
+	# energyRange = [5.3,4.9,5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
+	# radioactivities = [166e12,0.63e12,21.8e12,0.643e12,3.03e12,0.126e12] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
+
+	energyRange = [4.9,5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
+	radioactivities = [0.63e12,21.8e12,0.643e12,3.03e12,0.126e12] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 	# densityRange = list(np.arange(0.00000001,.005,0.0001)) # g/cm3
 
 	densityRange =  list(np.arange(0.006,.05, .0001))
+	densityRange_2 = list(np.arange(0.003,.05, .0001))
 
 	stoppingRangesList = []
 
@@ -224,7 +229,7 @@ if __name__ == '__main__':
 
 	for prop in propellants:
 
-		for e in energyRange:
+		for i in range(0,len(energyRange)):
 			# SR_filename = prop + "2/"+str(e)+"_SR.txt"
 			# elec_genDep_filename = prop + "2/"+str(e)+"_elec_genDep.txt"
 			# elec_genEn_filename = prop + "2/"+str(e)+"_elec_genEn.txt"
@@ -242,8 +247,12 @@ if __name__ == '__main__':
 			# elec_file = open(elec_genDep_filename, "a")
 			# elec_file = open(elec_genEn_filename, "a")
 			# e = 5.49
+			e = energyRange[i]
+			rad = radioactivities[i]
+			time_elapsed = 1e-9
+			particleCount = int(rad*time_elapsed)
 			MN
-			stoppingRanges = MN.run(densityRange, e, particle, theta, phi, prop)
+			stoppingRanges = MN.run(densityRange, e, particle, particleCount, theta, phi, prop)
 			stoppingRangesList.append(stoppingRanges)
 	# time.sleep(.005)
 

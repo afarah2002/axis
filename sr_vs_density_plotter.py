@@ -47,7 +47,7 @@ def plotter(densities, RI_densities, energies, SRList):
 	# plt.scatter(densities, self.stoppingRanges)
 	# plt.show()
 
-	# fig = plt.figure()
+	fig = plt.figure()
 	# first subplot: a 3D scatter plot of positions
 	# ax = fig.add_subplot(111, projection='3d')
 	ax = fig.add_subplot(211)
