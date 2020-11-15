@@ -38,13 +38,39 @@ global elecPositionsList
 elecPositionsList = []
 global stoppingPowerList
 stoppingPowerList = []
-
+global ionizationDataList
+ionizationDataList = []
+global alphaIonizNum
+alphaIonizNum = []
+global elecIonizNum
+elecIonizNum = []
 
 #----------code starts here!----------#
+class SetGlobalData(object):
+
+	def __init__(self):
+		pass
+
+	def set_ionization_energies(self, propellant):
+		global total_alpha_ionizations
+		global total_elec_ionizations
+		total_alpha_ionizations = 0
+		total_elec_ionizations = 0
+		global ioniz_energies_list
+		if propellant == "cesium":
+			ioniz_energies_list = [3.894e-6,23.16e-6,35.24e-6] # MeV
+		if propellant == "bismuth":
+			ioniz_energies_list = [7.286e-6,16.69e-6,25.56e-6] # MeV
+		if propellant == "mercury":
+			ioniz_energies_list = [10.44e-6,18.76e-6,34.2e-6,45.29e-6,55.97e-6,88.3e-6] # MeV
+		if propellant == "xenon":
+			ioniz_energies_list = [12.13e-6,21.21e-6,32.12e-6] # MeV
+		if propellant == "iodine":
+			ioniz_energies_list = [10.45e-6,19.13e-6,32.96e-6] # MeV
+
 class GetGlobalData(object):
 
 	def __init__(self):
-		
 		pass
 
 	def get_stopping_range(self):
@@ -52,6 +78,15 @@ class GetGlobalData(object):
 
 	def get_electron_num(self):
 		return electron_number_final # returns num of electron within the stopping range
+
+	def get_total_ioniz_num(self):
+		alpha_ioniz_num = len(alphaIonizNum) 
+		elec_ioniz_num = len(elecIonizNum)
+		print alpha_ioniz_num, elec_ioniz_num
+		alphaIonizNum[:] = []
+		elecIonizNum[:] = []
+
+		return total_alpha_ionizations, total_elec_ionizations
 
 class DataAnalysis(object):
 
@@ -134,7 +169,7 @@ class DataAnalysis(object):
 
 	def electron_displayer(self):
 
-		parentIds, trackIds, KEs, edeps, positions = np.array(elecPositionsList).T
+		parentIds, trackIds, kineticEnergys, totalEnergyDeposits, positions = np.array(elecPositionsList).T
 		
 		# for p in positions
 
@@ -142,16 +177,6 @@ class DataAnalysis(object):
 		print "num of e- trackIds = ", len(set(trackIds)), "num of unique tracks = ", max(trackIds) - min(trackIds)
 
 		number_of_electrons = len(set(trackIds))
-
-
-
-
-
-		# c = Counter()
-		# positions_unfiltered = np.concatenate(trackIds, positions)
-		# for trackID, position in positions_unfiltered:
-		# 	c.update({trackID:position})
-		# positions = list(c.items())
 
 		trackID_filtered = dict(enumerate(pd.Index(trackIds).duplicated(keep='first')))
 		trackID_filtered = {key:val for key, val in trackID_filtered.items() if val == True}
@@ -161,43 +186,75 @@ class DataAnalysis(object):
 		print "num of filtered e- = ", len(positions_filtered)
 		
 		positions_filtered_all = list(itertools.chain(*positions_filtered))
-		xs, ys, zs = positions_all[0::3], positions_all[1::3], positions_all[2::3]
+		xs, ys, zs = positions_filtered_all[0::3], positions_filtered_all[1::3], positions_filtered_all[2::3]
 
-		fig = plt.figure()
-		# first subplot: a 3D scatter plot of positions
-		ax = fig.add_subplot(111, projection='3d')
-		axmin = -10
-		axmax = 10
-		axes = plt.gca()
-		axes.set_xlim([axmin,axmax])
-		axes.set_ylim([axmin,axmax])
-		axes.set_zlim([axmin,axmax])
-		ax.set_xlabel('X (mm)')
-		ax.set_ylabel('Y (mm)')
-		ax.set_zlabel('Z (mm)')
-		ax.scatter(xs, ys, zs)
-		plt.title("Electron positions") 
-		plt.show()
-		pass
+		positions_filtered_combined = np.array([xs,ys,zs]).T
+		for i in range(0,len(positions_filtered_combined)):
+			pos = positions_filtered_combined[i]
+			if all(i <= stoppingRange_final for i in pos) == False:
+				np.delete(positions_filtered_combined, i)
+		print "num of filtered e- within stopping range = ", len(positions_filtered_combined)
+		global electron_number_final
+		electron_number_final = len(positions_filtered_combined)
+
+		# fig = plt.figure()
+		# # first subplot: a 3D scatter plot of positions
+		# ax = fig.add_subplot(111, projection='3d')
+		# axmin = -10
+		# axmax = 10
+		# axes = plt.gca()
+		# axes.set_xlim([axmin,axmax])
+		# axes.set_ylim([axmin,axmax])
+		# axes.set_zlim([axmin,axmax])
+		# ax.set_xlabel('X (mm)')
+		# ax.set_ylabel('Y (mm)')
+		# ax.set_zlabel('Z (mm)')
+		# ax.scatter(xs, ys, zs)
+		# plt.title("Electron positions") 
+		# plt.show()
+		# pass
+
+	def calc_ionization(self, procName, particleName, deltaEnergy, ionizingEnergy, energyLevel):
+
+		'''
+		procname = process (ionIoni, eIoni)
+		particleName = alpha, e-
+		deltaEnergy = change in energy due to ionization
+		ionizingEnergy = change in energy due to ionization
+		energyLevel = which ionization level is used (1st, 2nd, 3rd, "mean")
+		'''
+		energyLevel -= 1 # python is indexed 0
+		if energyLevel != "mean":
+			unit_ionization_energy = ioniz_energies_list[energyLevel]
+		else:
+			unit_ionization_energy = np.mean(ioniz_energies_list)
+
+		ionization_num = int(ionizingEnergy/unit_ionization_energy)
+		if procName == "ionIoni":
+			for i in range(0,ionization_num):
+				alphaIonizNum.append("alpha")
+		if procName == "eIoni":
+			for i in range(0,ionization_num):
+				elecIonizNum.append("e-")
 
 	def prop_stopping_power(self):
 
 		stoppingPowerData = np.array(stoppingPowerList).T
 		depths = stoppingPowerData[0]
-		KEs = stoppingPowerData[1]
-		edeps = stoppingPowerData[2]
-		edep_fracs = stoppingPowerData[3]
-		edeps_per_depth = np.divide(edeps,depths)
-		edep_fracs_per_depth = np.divide(edep_fracs, depths)
+		kineticEnergys = stoppingPowerData[1]
+		totalEnergyDeposits = stoppingPowerData[2]
+		totalEnergyDeposit_fracs = stoppingPowerData[3]
+		totalEnergyDeposits_per_depth = np.divide(totalEnergyDeposits,depths)
+		totalEnergyDeposit_fracs_per_depth = np.divide(totalEnergyDeposit_fracs, depths)
 
 		zipped_x = depths
-		zipped_y = edeps_per_depth
+		zipped_y = totalEnergyDeposits_per_depth
 
 		zipped_data = zip(zipped_x, zipped_y)
 		sorted_zipped_data = sorted(zipped_data)
 		sorted_y = [element for _, element in sorted_zipped_data]
 		sorted_x = sorted(zipped_x)
-		# print sorted_edep_fracs, "\n", sorted_depths
+		# print totalEnergyDeposit_fracs, "\n", sorted_depths
 
 		plt.plot(sorted_x, sorted_y)
 		plt.grid()
@@ -340,10 +397,17 @@ class MyEventAction(G4UserEventAction):
 	"My Event Action"
 
 	def EndOfEventAction(self, event):
-		DA.compute_stopping_range()
+		# DA.compute_stopping_range()
 		# DA.elec_gen_analysis()
 		# DA.prop_stopping_power()
-		DA.electron_displayer()
+		# if len(elecPositionsList) != 0:
+		# DA.electron_displayer()
+		# else:
+		# 	global electron_number_final
+		# 	electron_number_final = 0
+		# total_alpha_ionizations = 0
+		# total_elec_ionizations = 0
+		print "alphas = ", total_alpha_ionizations, "e- =" , total_elec_ionizations
 		print "*** End of Event"
 		pass
 
@@ -356,46 +420,69 @@ class MySteppingAction(G4UserSteppingAction):
 		# energies[:] = []
 		preStepPoint = step.GetPreStepPoint()
 		postStepPoint = step.GetPostStepPoint()
+		procName = postStepPoint.GetProcessDefinedStep().GetProcessName()
 		track = step.GetTrack()
 		parentId = track.GetParentID()
 		trackId = track.GetTrackID()
 		particleName = track.GetDefinition().GetParticleName() 
 		touchable = track.GetTouchable()
-		KE = track.GetKineticEnergy()
+		kineticEnergy = track.GetKineticEnergy()
 
-		edep = step.GetTotalEnergyDeposit()
 
+		totalEnergyDeposit = step.GetTotalEnergyDeposit()
+		nonIonizingEnergyDeposit = step.GetNonIonizingEnergyDeposit()
+		deltaEnergy = step.GetDeltaEnergy() 
+		ionizingEnergy = totalEnergyDeposit - nonIonizingEnergyDeposit
+		print trackId, "dE = ", deltaEnergy, "  ionizing energy = ", ionizingEnergy, " ", particleName
+
+
+		# --- calculate number of ionizations --- #
+		energyLevel = 1
+		DA.calc_ionization(procName, particleName, deltaEnergy, ionizingEnergy, energyLevel)
 
 
 		# stoppedThreshold = .1 # 10 eV, less than the 1st ionization energy of Xe
-		# print edep
+		# print totalEnergyDeposit
 
-		# if edep > 0.999*5.3:
-			# if KE < stoppedThreshold:
-			# print particleName, " ", edep, " ", 25+postStepPoint.GetPosition().x
-		# if KE == 0.0 :
-		# 	print parentId, trackId, stoppingRange, KE, particleName
+		# if totalEnergyDeposit > 0.999*5.3:
+			# if kineticEnergy < stoppedThreshold:
+			# print particleName, " ", totalEnergyDeposit, " ", 25+postStepPoint.GetPosition().x
+		# if kineticEnergy == 0.0 :
+		# 	print parentId, trackId, stoppingRange, kineticEnergy, particleName
 
 		# --- alphas, stopping range --- #
-		if parentId == 0 and KE == 0.0:
-			position = [float(postStepPoint.GetPosition().x), float(postStepPoint.GetPosition().y), float(postStepPoint.GetPosition().z)]
-			stoppingRange  = np.sqrt(np.sum(np.power(position,2)))
-			print parentId, trackId, stoppingRange, KE, particleName
-			DA.data_collection(stoppingRange)
+		# if parentId == 0 and kineticEnergy == 0.0:
+		# 	position = [float(postStepPoint.GetPosition().x), float(postStepPoint.GetPosition().y), float(postStepPoint.GetPosition().z)]
+		# 	stoppingRange  = np.sqrt(np.sum(np.power(position,2)))
+		# 	# print parentId, trackId, stoppingRange, kineticEnergy, particleName
+		# 	# DA.data_collection(stoppingRange)
+
+		# --- alphas, ionization (process) data -- #
+		# if parentId == 0:
+		# 	print particleName, deltaEnergy, totalEnergyDeposit, procName
+		# if procName == "ionIoni" or procName == "eIoni":
+		# 	print particleName, parentId, trackId, deltaEnergy, totalEnergyDeposit, procName
+		# if procName == "ionIoni":
+		# 	alphaIonizNum.append([particleName, parentId, trackId, deltaEnergy, totalEnergyDeposit, procName])
+		# 	print particleName, parentId, trackId, deltaEnergy, totalEnergyDeposit, procName
+		# if procName == "eIoni":
+		# 	elecIonizNum.append([particleName, parentId, trackId, deltaEnergy, totalEnergyDeposit, procName])
+		# 	print particleName, parentId, trackId, deltaEnergy, totalEnergyDeposit, procName
+
 
 		# # --- alphas, stopping power --- #
 		# if particleName == "alpha":
-		# 	if KE == 0:
-		# 		edep_frac = 0
+		# 	if kineticEnergy == 0:
+		# 		totalEnergyDeposit_frac = 0
 		# 	else:
-		# 		edep_frac = float(edep/KE)
-		# 	print parentId, trackId, 1250 + preStepPoint.GetPosition().x, KE, edep, edep_frac
-		# 	stoppingPowerList.append([1250 + preStepPoint.GetPosition().x, KE, edep, edep_frac])
+		# 		totalEnergyDeposit_frac = float(totalEnergyDeposit/kineticEnergy)
+		# 	print parentId, trackId, 1250 + preStepPoint.GetPosition().x, kineticEnergy, totalEnergyDeposit, totalEnergyDeposit_frac
+		# 	stoppingPowerList.append([1250 + preStepPoint.GetPosition().x, kineticEnergy, totalEnergyDeposit, totalEnergyDeposit_frac])
 
 		# # --- electrons, position plotting --- #
-		if particleName == "e-":
-			position = [float(postStepPoint.GetPosition().x), float(postStepPoint.GetPosition().y), float(postStepPoint.GetPosition().z)]
-			print parentId, trackId, KE, edep, position
-			elecPositionsList.append([parentId, trackId, KE, edep, position])
+		# if particleName == "e-":
+		# 	position = [float(postStepPoint.GetPosition().x), float(postStepPoint.GetPosition().y), float(postStepPoint.GetPosition().z)]
+		# 	print parentId, trackId, kineticEnergy, totalEnergyDeposit, position, procName
+		# 	elecPositionsList.append([parentId, trackId, kineticEnergy, totalEnergyDeposit, position])
 
-			# DA.elec_data_collection([trackId, edep, 1250 + preStepPoint.GetPosition().x])
+			# DA.elec_data_collection([trackId, totalEnergyDeposit, 1250 + preStepPoint.GetPosition().x])

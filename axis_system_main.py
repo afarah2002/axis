@@ -6,7 +6,7 @@ from g4py.ezgeom import G4EzVolume
 import g4py.NISTmaterials
 import g4py.EMSTDpl
 import g4py.ParticleGun, g4py.MedicalBeam
-from Geant4 import FTFP_BERT, QGSP_BERT, QGSP_BERT_HP, QGSP_BIC_AllHP, QGSP_BIC_HP
+from Geant4 import FTFP_BERT, FTFP_BERT_HP, QGSP_BERT, QGSP_BERT_HP, QGSP_BIC_AllHP, QGSP_BIC_HP
 from Geant4 import G4ParticleTable, G4PrimaryParticle, G4PrimaryVertex
 
 #----------PYTHON imports----------#
@@ -23,18 +23,17 @@ import time
 from geom_constructor import GeomConstructor 
 from visualizer import Visualizer
 from read_gdml_test import MyDetectorConstruction
-from alpha_beam_1 import MyPrimaryGeneratorAction, MyRunAction, MyEventAction,MySteppingAction, DataAnalysis, GetGlobalData
+from alpha_beam_1 import MyPrimaryGeneratorAction, MyRunAction, MyEventAction,MySteppingAction, DataAnalysis, GetGlobalData, SetGlobalData
 
 GC = GeomConstructor()
 VIS = Visualizer()
 DA = DataAnalysis()
 GGD = GetGlobalData()
-
-# exN03geom= g4py.ExN03geom.ExN03DetectorConstruction()
-# gRunManager.SetUserInitialization(exN03geom)
+SGD = SetGlobalData()
 
 ######### CODE STARTS HERE ##########
 physicsList = QGSP_BERT()
+# physicsList = FTFP_BERT_HP()
 
 # mouse stuff
 mouse = pymouse.PyMouse()
@@ -57,7 +56,7 @@ class SpaceConstructor(object):
 		radioisotope = G4Material("U235", 92,  235.0439299*g/mole, 19.1*g/cm3)
 		material1 = gNistManager.FindOrBuildMaterial("G4_C")
 		# GC.ConstructBox("carbon_plate", material1, [0,0,0], mm,[1,20,20])
-		g4py.ezgeom.ResizeWorld(25.*mm, 25.*mm, 25.*mm)
+		g4py.ezgeom.ResizeWorld(500.*mm, 500.*mm, 500.*mm)
 		# GC.ConstructBox("uranium", radioisotope, [-49.5/2,0,0], mm, [1,49.5,49.5])
 
 
@@ -90,8 +89,11 @@ class Main(object):
 			if prop == "xenon":
 				prop_gas = G4Material("gaseousProp", 54., 131.293*g/mole, d*g/cm3)
 
-			print(prop,"\n")
+			print prop, "\n"
 
+			# vacuum = gNistManager.FindOrBuildMaterial("vacuum") 
+			# g4py.ezgeom.SetWorldMaterial(vacuum)
+			SGD.set_ionization_energies(prop)
 			g4py.ezgeom.SetWorldMaterial(prop_gas)
 			# alphaEnergy = 5.49 # MeV
 			PGA_1 = MyPrimaryGeneratorAction(particle, particleEnergy, MeV, particleCount, [1,0,0])
@@ -107,8 +109,16 @@ class Main(object):
 			gRunManager.BeamOn(1)
 
 			# stoppingRange = GGD.get_stopping_range()
-			# self.stoppingRanges.append(stoppingRange)
 			# SR_file.writelines(str(stoppingRange)+"\n")
+
+			# elec_num = GGD.get_electron_num()
+			# elec_file.writelines(str(elec_num)+"\n")
+
+			alpha_ioniz, elec_ioniz = GGD.get_total_ioniz_num()
+			print "Total num of ionizations = ", alpha_ioniz + elec_ioniz
+			# total_ioniz_file.writelines(str(alpha_ioniz)+ " " + str(elec_ioniz)+"\n")
+			
+			# self.stoppingRanges.append(stoppingRange)
 
 		return self.stoppingRanges
 
@@ -165,25 +175,26 @@ class Main(object):
 
 		plt.title(zlabel + " vs " + xlabel + "vs" + ylabel)
 		plt.grid()
-		# plt.draw() 
 		plt.show()
 
 
 if __name__ == '__main__':
 
 	# energyRange = np.arange(0.1,10,.1) # MeV
-	propellants = ["cesium","bismuth","mercury","iodine","xenon"]
-	# propellants = ["cesium","bismuth","mercury","xenon","iodine"]
+	propellants = ["cesium","bismuth","mercury","xenon","iodine"]
 
 	# energyRange = [5.3,4.9,5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 	# radioactivities = [166e12,0.63e12,21.8e12,0.643e12,3.03e12,0.126e12] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 
 	energyRange = [4.9,5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
+	# energyRange = [5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 	radioactivities = [0.63e12,21.8e12,0.643e12,3.03e12,0.126e12] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 	# densityRange = list(np.arange(0.00000001,.005,0.0001)) # g/cm3
 
-	densityRange =  list(np.arange(0.006,.05, .0001))
+	# densityRange =  list(np.arange(0.006,.05, .0001))
 	densityRange_2 = list(np.arange(0.003,.05, .0001))
+	# densityRange_2 = list(np.arange(0.003,.03, .0001))
+	# densityRange_2 = [0.01]
 
 	stoppingRangesList = []
 
@@ -230,29 +241,34 @@ if __name__ == '__main__':
 	for prop in propellants:
 
 		for i in range(0,len(energyRange)):
-			# SR_filename = prop + "2/"+str(e)+"_SR.txt"
-			# elec_genDep_filename = prop + "2/"+str(e)+"_elec_genDep.txt"
-			# elec_genEn_filename = prop + "2/"+str(e)+"_elec_genEn.txt"
 
-			# os.system("touch " + SR_filename)
-			# os.system("touch " + elec_genDep_filename)
-			# os.system("touch " + elec_genEn_filename)
-
-
-			# open(SR_filename).close()
-			# open(elec_genDep_filename).close()
-			# open(elec_genEn_filename).close()
-
-			# SR_file = open(SR_filename, "a")
-			# elec_file = open(elec_genDep_filename, "a")
-			# elec_file = open(elec_genEn_filename, "a")
-			# e = 5.49
 			e = energyRange[i]
-			rad = radioactivities[i]
-			time_elapsed = 1e-9
-			particleCount = int(rad*time_elapsed)
+
+			## Holds stopping range data for each RI
+			# SR_filename = prop + "2/"+str(e)+"_SR.txt"
+			# os.system("touch " + SR_filename)
+			# open(SR_filename).close()
+			# SR_file = open(SR_filename, "a")
+
+			## Holds number of electrons generated within the SR radius for each RI
+			# elec_num_filename = prop + "2/"+str(e)+"_elec_num.txt"
+			# os.system("touch " + elec_num_filename)
+			# open(elec_num_filename).close()
+			# elec_file = open(elec_num_filename, "a")
+
+			# Holds number of alpha and e- induced ionizations
+			# total_ionization_num_filename = prop + "2/"+str(e)+"_ionization_num.txt"
+			# os.system("touch " + total_ionization_num_filename)
+			# open(total_ionization_num_filename).close()
+			# total_ioniz_file = open(total_ionization_num_filename, "a")
+
+			# e = 5.49
+			# rad = radioactivities[i]
+			# time_elapsed = 1e-9
+			# particleCount = int(rad*time_elapsed)
+			particleCount = 50
 			MN
-			stoppingRanges = MN.run(densityRange, e, particle, particleCount, theta, phi, prop)
+			stoppingRanges = MN.run(densityRange_2, e, particle, particleCount, theta, phi, prop)
 			stoppingRangesList.append(stoppingRanges)
 	# time.sleep(.005)
 
