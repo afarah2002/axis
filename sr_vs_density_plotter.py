@@ -117,7 +117,7 @@ def ioniz_plotter(densities, RI_densities, energies, totalIonizNumList):
 
 	xlabel = propellant + " " + r'$\rho$' + " (g/cm" r'$^3$' + ")"
 	ylabel = "Alpha energy (MeV)"
-	zlabel = "Num of ionizations per alpha (alpha and e-)"
+	zlabel = "Ionizations per alpha at first ionization energy"
 	# plt.xlabel(xlabel)
 	# plt.ylabel(ylabel)
 	# plt.title(ylabel + " vs " + xlabel)
@@ -157,7 +157,12 @@ def ioniz_plotter(densities, RI_densities, energies, totalIonizNumList):
 	ax.set_ylabel(zlabel)
 	ax.set_title(zlabel + " vs " + xlabel)
 	ax.grid()
-	# ax.legend(("Po209, energy = " + str(ys[1]), "Po208, energy = " + str(ys[2]), "Pu238, energy = " + str(ys[3]), "Cm244, energy = " + str(ys[4]), "Am241, energy = " + str(ys[5])),loc=5)
+	ax.legend(("Po209, energy = " + str(ys[0]), 
+			   "Po208, energy = " + str(ys[1]), 
+			   "Pu238, energy = " + str(ys[2]), 
+			   "Cm244, energy = " + str(ys[3]), 
+			   "Am241, energy = " + str(ys[4])),
+				loc=4)
 
 	# plt.draw() 
 	plt.show()
@@ -173,7 +178,8 @@ if __name__ == '__main__':
 	RI_densities = [9.196, 9.196, 9.196, 19.8, 13.51, 12.] # g/cm3    Po210, Po209, Po208, Pu238, Cm244, Am241
 	# energyRange = [5.3,4.9]
 	# densityRange =  list(np.arange(0.006,.05, .0001))
-	densityRange_2 = list(np.arange(0.003,.05, .0001))
+	# densityRange_2 = list(np.arange(0.003,.05, .0001)) #use for SR, mean
+	densityRange_2 = list(np.arange(0.003,.015, .0001)) # use for first ioniz
 
 
 	# energy = 5.3
@@ -189,7 +195,7 @@ if __name__ == '__main__':
 		# IS BAD!!! IT WAS RECORDING ELECTRONS, NOT ALPHAS
 		# MAYBE IT COULD BE USEFUL THO......
 		# SR_file = propellant + "2/"+str(energy)+"_SR.txt"
-		totalIoniz_file = propellant + "2/"+str(energy)+"_ionization_num.txt"
+		totalIoniz_file = propellant + "2/"+str(energy)+"_first_ionization_num.txt"
 
 		# using total ionization energies:
 		# Source: # https://en.wikipedia.org/wiki/Molar_ionization_energies_of_the_elements ##
@@ -215,6 +221,7 @@ if __name__ == '__main__':
 		ioniz_nums = read_data(totalIoniz_file)
 		alpha_ioniz_nums = ioniz_nums[::2].flatten()
 		elec_ioniz_nums = ioniz_nums[1::2].flatten()
+		# total_ioniz_nums = np.sum(alpha_ioniz_nums, elec_ioniz_nums)
 		print ioniz_nums
 		totalIonizNumList.append(alpha_ioniz_nums)
 		# print stopping_ranges

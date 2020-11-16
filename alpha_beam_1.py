@@ -52,10 +52,6 @@ class SetGlobalData(object):
 		pass
 
 	def set_ionization_energies(self, propellant):
-		global total_alpha_ionizations
-		global total_elec_ionizations
-		total_alpha_ionizations = 0
-		total_elec_ionizations = 0
 		global ioniz_energies_list
 		if propellant == "cesium":
 			ioniz_energies_list = [3.894e-6,23.16e-6,35.24e-6] # MeV
@@ -80,13 +76,17 @@ class GetGlobalData(object):
 		return electron_number_final # returns num of electron within the stopping range
 
 	def get_total_ioniz_num(self):
+		# global alpha_ioniz_num
+		# global elec_ioniz_num
 		alpha_ioniz_num = len(alphaIonizNum) 
 		elec_ioniz_num = len(elecIonizNum)
 		print alpha_ioniz_num, elec_ioniz_num
+		# time.sleep(2)
 		alphaIonizNum[:] = []
 		elecIonizNum[:] = []
+		
 
-		return total_alpha_ionizations, total_elec_ionizations
+		return alpha_ioniz_num, elec_ioniz_num
 
 class DataAnalysis(object):
 
@@ -138,7 +138,7 @@ class DataAnalysis(object):
 		c = Counter()
 		energies = (np.array(elecDataList).T[:2]).T
 		# print len(energies) 
-		time.sleep(2)
+		# time.sleep(2)
 		# dup_trackIDs = [item for item, count in Counter(elecDataList.T[0]).items() if count > 1]
 		for trackID, eDep in energies:
 			c.update({trackID:eDep})
@@ -223,8 +223,8 @@ class DataAnalysis(object):
 		ionizingEnergy = change in energy due to ionization
 		energyLevel = which ionization level is used (1st, 2nd, 3rd, "mean")
 		'''
-		energyLevel -= 1 # python is indexed 0
 		if energyLevel != "mean":
+			energyLevel -= 1 # python is indexed 0
 			unit_ionization_energy = ioniz_energies_list[energyLevel]
 		else:
 			unit_ionization_energy = np.mean(ioniz_energies_list)
@@ -407,7 +407,7 @@ class MyEventAction(G4UserEventAction):
 		# 	electron_number_final = 0
 		# total_alpha_ionizations = 0
 		# total_elec_ionizations = 0
-		print "alphas = ", total_alpha_ionizations, "e- =" , total_elec_ionizations
+		# print "alphas = ", alpha_ioniz_num, "e- =" , elec_ioniz_num
 		print "*** End of Event"
 		pass
 
@@ -433,10 +433,11 @@ class MySteppingAction(G4UserSteppingAction):
 		nonIonizingEnergyDeposit = step.GetNonIonizingEnergyDeposit()
 		deltaEnergy = step.GetDeltaEnergy() 
 		ionizingEnergy = totalEnergyDeposit - nonIonizingEnergyDeposit
-		print trackId, "dE = ", deltaEnergy, "  ionizing energy = ", ionizingEnergy, " ", particleName
+		# print parentId, trackId, "dE = ", deltaEnergy, "  ionizing energy = ", ionizingEnergy, " ", particleName
 
 
 		# --- calculate number of ionizations --- #
+		# energyLevel = "mean"
 		energyLevel = 1
 		DA.calc_ionization(procName, particleName, deltaEnergy, ionizingEnergy, energyLevel)
 

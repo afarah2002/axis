@@ -115,8 +115,9 @@ class Main(object):
 			# elec_file.writelines(str(elec_num)+"\n")
 
 			alpha_ioniz, elec_ioniz = GGD.get_total_ioniz_num()
-			print "Total num of ionizations = ", alpha_ioniz + elec_ioniz
-			# total_ioniz_file.writelines(str(alpha_ioniz)+ " " + str(elec_ioniz)+"\n")
+			# print "Total num of ionizations = ", alpha_ioniz + elec_ioniz
+			print alpha_ioniz, elec_ioniz
+			total_ioniz_file.writelines(str(alpha_ioniz)+ " " + str(elec_ioniz)+"\n")
 			
 			# self.stoppingRanges.append(stoppingRange)
 
@@ -181,18 +182,20 @@ class Main(object):
 if __name__ == '__main__':
 
 	# energyRange = np.arange(0.1,10,.1) # MeV
-	propellants = ["cesium","bismuth","mercury","xenon","iodine"]
+	# propellants = ["cesium"]
+	# energyRange = [5.5]
+	propellants = ["cesium", "bismuth","mercury","xenon","iodine"]
+	energyRange = [4.9,5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 
 	# energyRange = [5.3,4.9,5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 	# radioactivities = [166e12,0.63e12,21.8e12,0.643e12,3.03e12,0.126e12] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 
-	energyRange = [4.9,5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 	# energyRange = [5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 	radioactivities = [0.63e12,21.8e12,0.643e12,3.03e12,0.126e12] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 	# densityRange = list(np.arange(0.00000001,.005,0.0001)) # g/cm3
 
 	# densityRange =  list(np.arange(0.006,.05, .0001))
-	densityRange_2 = list(np.arange(0.003,.05, .0001))
+	densityRange_2 = list(np.arange(0.003,.015, .0001))
 	# densityRange_2 = list(np.arange(0.003,.03, .0001))
 	# densityRange_2 = [0.01]
 
@@ -257,10 +260,10 @@ if __name__ == '__main__':
 			# elec_file = open(elec_num_filename, "a")
 
 			# Holds number of alpha and e- induced ionizations
-			# total_ionization_num_filename = prop + "2/"+str(e)+"_ionization_num.txt"
-			# os.system("touch " + total_ionization_num_filename)
-			# open(total_ionization_num_filename).close()
-			# total_ioniz_file = open(total_ionization_num_filename, "a")
+			total_ionization_num_filename = prop + "2/"+str(e)+"_first_ionization_num.txt"
+			os.system("touch " + total_ionization_num_filename)
+			open(total_ionization_num_filename).close()
+			total_ioniz_file = open(total_ionization_num_filename, "a")
 
 			# e = 5.49
 			# rad = radioactivities[i]
