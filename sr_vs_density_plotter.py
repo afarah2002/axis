@@ -108,16 +108,13 @@ def plotter(densities, RI_densities, energies, SRList):
 	# plt.draw() 
 	plt.show()
 
-def ioniz_plotter(densities, RI_densities, energies, totalIonizNumList):
+def ioniz_plotter(densities, energies, totalIonizNumList):
 
 	xs = densities
 	ys = energies
 	zs = totalIonizNumList
 
 
-	xlabel = propellant + " " + r'$\rho$' + " (g/cm" r'$^3$' + ")"
-	ylabel = "Alpha energy (MeV)"
-	zlabel = "Ionizations per alpha at first ionization energy"
 	# plt.xlabel(xlabel)
 	# plt.ylabel(ylabel)
 	# plt.title(ylabel + " vs " + xlabel)
@@ -132,26 +129,47 @@ def ioniz_plotter(densities, RI_densities, energies, totalIonizNumList):
 
 
 	# RI_masses = np.multiply(RI_densities, np.multiply(4*np.pi/3, np.power(np.subtract(2,zs[i]),3)))
-	Chamber_volume = (np.pi*2**2)*4# cm3
-	Propellant_density = xs
-
-	# radioactivities = [0.63e12,21.8e12,0.643e12,3.03e12,0.126e12] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
+	pct_chamber_ionized = 1
+	Chamber_volume = pct_chamber_ionized*(np.pi*2**2)*4# cm3
+	Propellant_densities = xs
+	specific_radioactivities = [0.63e12,21.8e12,0.643e12,3.03e12,0.126e12] # Bcq/g Po210, Po209, Po208, Pu238, Cm244, Am241
 	# time_elapsed = 1e-9
 	num_alphas = 50
+	RI_molar_masses = [208.9824,207.9812,238.04956,244.06275,241.05683] # g/mol
+
+	num_full_ionizations = 1e12 # number of full-chamber ionizations the RI should be capable of producing
 
 	for i in np.arange(0, len(ys)): # energies is on the y
 		# ax.plot(xs, list(ys[i]*np.ones(len(xs))), zs[i])
 		alpha_energy = ys[i]
 		ionizations_per_alpha = np.divide(zs[i],num_alphas)
-		# ax.plot(Propellant_density, zs[i])
-		ax.plot(Propellant_density, ionizations_per_alpha)
+		# ax.plot(Propellant_densities, ionizations_per_alpha)
+		spec_rad = specific_radioactivities[i] # Bcq/g, decays/gs
+		prop_particles_in_chamber = np.multiply(Propellant_densities,Chamber_volume*6.02e23/prop_molar_mass)
+		num_alphas_full_chamber = np.divide(prop_particles_in_chamber,ionizations_per_alpha)
+		RI_molar_mass = RI_molar_masses[i]
+		RI_mass_full_chamber = np.multiply(num_alphas_full_chamber,RI_molar_mass/(6.02e23)) # mass in g
+		time_to_ionize = np.divide(num_alphas_full_chamber,np.multiply(RI_mass_full_chamber,spec_rad*num_full_ionizations)) # time in s
+
+		Propellant_mass = np.multiply(Propellant_densities,Chamber_volume)
+		Propellant_mass_per_RI_mass = np.divide(Propellant_mass,RI_mass_full_chamber)
+		# ax.plot(Propellant_densities,np.multiply(RI_mass_full_chamber,1e6)) # mass in ug
+		ax.plot(Propellant_densities, np.multiply(time_to_ionize,1e3)) # time in ms
+		# ax.plot(Propellant_densities,Propellant_mass_per_RI_mass)
+		# ax.plot(RI_mass_full_chamber,Propellant_mass)
+		# ax.plot(Propellant_densities, num_alphas_full_chamber)
 
 
-		# ax2.plot(Propellant_density,alpha_mass)
-		# ax2.plot(xs, RI_radius)
+	xlabel = propellant + " " + r'$\rho$' + " (g/cm" r'$^3$' + ")"
+	# xlabel = "Num of propellant particles in chamber"
+	ylabel = "Alpha energy (MeV)"
+	# zlabel = "Ionizations per alpha at first ionization energy"
+	# zlabel = "RI mass to fully ionize the chamber once (" + r'$\mu$' + "g)"
+	zlabel = "Time to fully ionize chamber (ms)"
+	# zlabel = "Propellant mass ionized per gram of RI"
+	# zlabel = "Number of alphas needed for full ionization"
 
-
-	ax.set_xlim([min(xs),max(xs)])
+	# ax.set_ylim([0,4])
 	# axes.set_zlim([0,20])
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel(zlabel)
@@ -165,6 +183,11 @@ def ioniz_plotter(densities, RI_densities, energies, totalIonizNumList):
 				loc=4)
 
 	# plt.draw() 
+	mass_plt_file_name = propellant + "_plots/RI_mass_vs_density.pdf"
+	first_IE_plt_file_name = propellant + "/first_IE_vs_density.pdf"
+	mean_IE_plt_file_name = propellant + "/mean_IE_vs_density.pdf"
+
+	# fig.savefig(mass_plt_file_name, bbox_inches='tight') # save as pdf
 	plt.show()
 
 
@@ -200,19 +223,19 @@ if __name__ == '__main__':
 		# using total ionization energies:
 		# Source: # https://en.wikipedia.org/wiki/Molar_ionization_energies_of_the_elements ##
 		if propellant == "cesium":
-			iEnergy_T = 3.7511e+19 # total ionization energy per mol of propellant MeV
+			# iEnergy_T = 3.7511e+19 # total ionization energy per mol of propellant MeV
 			prop_molar_mass = 132.90545 # g/mol
 		if propellant == "bismuth":
-			iEnergy_T = 1.43985e+20 # total ionization energy per mol of propellant MeV
+			# iEnergy_T = 1.43985e+20 # total ionization energy per mol of propellant MeV
 			prop_molar_mass = 208.9804 # g/mol
 		if propellant == "mercury":
-			iEnergy_T = 3.817994e+19 # total ionization energy per mol of propellant MeV
+			# iEnergy_T = 3.817994e+19 # total ionization energy per mol of propellant MeV
 			prop_molar_mass = 200.59 # g/mol
 		if propellant == "xenon":
-			iEnergy_T = 3.942262e+19 # total ionization energy per mol of propellant MeV
+			# iEnergy_T = 3.942262e+19 # total ionization energy per mol of propellant MeV
 			prop_molar_mass = 131.293 # g/mol
 		if propellant == "iodine":
-			iEnergy_T = 3.766314e+19 # total ionization energy per mol of propellant MeV
+			# iEnergy_T = 3.766314e+19 # total ionization energy per mol of propellant MeV
 			prop_molar_mass = 126.90447 # g/mol
 
 		# stopping_ranges = read_data(SR_file)
@@ -226,4 +249,4 @@ if __name__ == '__main__':
 		totalIonizNumList.append(alpha_ioniz_nums)
 		# print stopping_ranges
 	# plotter(densityRange, RI_densities, energyRange, SRList)
-	ioniz_plotter(densityRange_2, RI_densities, energyRange, totalIonizNumList)
+	ioniz_plotter(densityRange_2, energyRange, totalIonizNumList)
