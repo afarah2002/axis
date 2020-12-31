@@ -35,8 +35,8 @@ global stoppingPowerList
 stoppingPowerList = []
 global ionizationDataList
 ionizationDataList = []
-global alphaIonizNum
-alphaIonizNum = []
+global ionIonizNum
+ionIonizNum = []
 global elecIonizNum
 elecIonizNum = []
 
@@ -72,22 +72,22 @@ class GetGlobalData(object):
 		return electron_number_final # returns num of electron within the stopping range
 
 	def get_total_ioniz_num(self):
-		# global alpha_ioniz_num
+		# global ion_ioniz_num
 		# global elec_ioniz_num
-		alpha_ioniz_num = len(alphaIonizNum) 
+		ion_ioniz_num = len(ionIonizNum) 
 		elec_ioniz_num = len(elecIonizNum)
-		print alpha_ioniz_num, elec_ioniz_num
+		print ion_ioniz_num, elec_ioniz_num
 		# time.sleep(2)
-		alphaIonizNum[:] = []
+		ionIonizNum[:] = []
 		elecIonizNum[:] = []
 		
 
-		return alpha_ioniz_num, elec_ioniz_num
+		return ion_ioniz_num, elec_ioniz_num
 
 class DataAnalysis(object):
 
 	'''
-	Analyzes the stopping ranges of alphas of different 
+	Analyzes the stopping ranges of ions of different 
 		energies in different densities of Xe gas
 	Produces a 3D plot OR 2D plots (range vs density) for
 		chosen radioisotopes
@@ -214,7 +214,7 @@ class DataAnalysis(object):
 
 		'''
 		procname = process (ionIoni, eIoni)
-		particleName = alpha, e-
+		particleName = ion, e-
 		deltaEnergy = change in energy due to ionization
 		ionizingEnergy = change in energy due to ionization
 		energyLevel = which ionization level is used (1st, 2nd, 3rd, "mean")
@@ -228,7 +228,7 @@ class DataAnalysis(object):
 		ionization_num = int(ionizingEnergy/unit_ionization_energy)
 		if procName == "ionIoni":
 			for i in range(0,ionization_num):
-				alphaIonizNum.append("alpha")
+				ionIonizNum.append("ion")
 		if procName == "eIoni":
 			for i in range(0,ionization_num):
 				elecIonizNum.append("e-")
@@ -300,7 +300,9 @@ def setup():
 	# ------------------------------------------------------------------
 	# Resize world
 	# ------------------------------------------------------------------
-	prop_gas = G4Material("prop_cesium", 55., 132.90545*g/mole, .002*g/cm3)
+	# prop_gas = G4Material("prop_cesium", 55., 132.90545*g/mole, .002*g/cm3)
+
+def set_prop(prop_gas):
 	g4py.ezgeom.SetWorldMaterial(prop_gas)
 	g4py.ezgeom.ResizeWorld(500.*mm, 500.*mm, 500.*mm)
 
@@ -373,6 +375,12 @@ class MySteppingAction(G4UserSteppingAction):
 	deltaEnergy = step.GetDeltaEnergy() 
 	ionizingEnergy = totalEnergyDeposit - nonIonizingEnergyDeposit
 
+	print "process", procName, ionizingEnergy, deltaEnergy
+
+	energyLevel = "mean"
+	# energyLevel = 1
+	DA.calc_ionization(procName, particleName, deltaEnergy, ionizingEnergy, energyLevel)
+
 	#print pv.GetCopyNo()
 	#print touchable.GetReplicaNumber(0)
 
@@ -388,7 +396,6 @@ class MySteppingAction(G4UserSteppingAction):
 # qPL= gtest01.QPhysicsList()
 # gRunManager.SetUserInitialization(qPL)
 
-setup()
 
 # set user actions...
 #qPGA= gtest01.QPrimaryGeneratorAction()
@@ -418,22 +425,45 @@ setup()
 # fieldMgr.SetDetectorField(myField)
 # fieldMgr.CreateChordFinder(myField)
 
-gRunManager.Initialize()
 
 # beamOn
 def main():
 
-	for i in range(5):
-		VIS().visualizer(45, 45, "viewer")
-		# gRunManager.BeamOn(1)
+	prop_list = ["cesium", "bismuth","mercury","xenon","iodine"]
+	density_list = list(np.arange(0.02,.015, .0001))
+	prop_dict = {"cesium" : 	(55., 132.90545), 
+				 "bismuth" : 	(83., 208.9804), 
+				 "mercury" : 	(80., 200.59), 
+				 "xenon" : 		(53., 126.90447), 
+				 "iodine" : 	(54., 131.293)}
 
-		myEA= MyEventAction()
-		gRunManager.SetUserAction(myEA)
 
-		mySA= MySteppingAction()
-		gRunManager.SetUserAction(mySA)
+	setup()
+	gRunManager.Initialize()
+	for prop in ["cesium", "bismuth","mercury","xenon","iodine"]:
+		SGD.set_ionization_energies(prop)
+		for density in list(np.arange(0.02,.05, .001)):
 
-		gControlExecute("gun.mac")
+			prop_gas = G4Material(prop + "_" + str(density), 
+						  prop_dict[prop][0], 
+						  prop_dict[prop][1]*g/mole, 
+						  density*g/cm3)
+			set_prop(prop_gas)
+
+			VIS().visualizer(45, 45, "viewer")
+			# gRunManager.BeamOn(1)
+
+			myEA= MyEventAction()
+			gRunManager.SetUserAction(myEA)
+
+			mySA= MySteppingAction()
+			gRunManager.SetUserAction(mySA)
+
+			gControlExecute("gun.mac")
+
+			ion_ioniz, elec_ioniz = GGD.get_total_ioniz_num()
+			print ion_ioniz
+			time.sleep(2)
 
 if __name__ == '__main__':
 	main()
