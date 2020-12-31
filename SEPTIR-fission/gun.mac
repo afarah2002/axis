@@ -1,0 +1,10 @@
+# gun.mac
+
+/gun/number 1
+/gun/particle ion
+/gun/ion 92 233 0
+/gun/energy 90. MeV
+/gun/direction 0. 0.  1.
+/gun/position 0. 0. 0. cm
+
+/run/beamOn 1
