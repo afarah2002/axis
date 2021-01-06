@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from sklearn.linear_model import LinearRegression
 plt.rcParams["font.family"] = "Times New Roman"
-mpl.rcParams.update({'font.size': 24})
+mpl.rcParams.update({'font.size': 14})
 rc('text', usetex=True)
 
 def read_data(file):
@@ -30,22 +30,13 @@ def read_data(file):
 			full_data.append(instance)
 		return np.array(full_data).flatten()
 
-def plotter(densities, RI_densities, energies, SRList):
-
-	# `self.stoppingRanges)
-	# print(densities)
+def plotter(densities, energies, SRList):
 
 	xs = densities
 	ys = energies
 	zs = SRList
 
-	# xs = [0.001, 0.011, 0.020999999999999998, 0.030999999999999996, 0.040999999999999995, 0.05099999999999999, 0.06099999999999999, 0.071, 0.08099999999999999, 0.09099999999999998]
-	# ys = [0.1, 4.6 ,9.1]
-	# zs = [[0.5828279651355435, 0.19427598837851448, 0.14570699128388587, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.5828279651355435, 0.19427598837851448, 0.14570699128388587, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.5828279651355435, 0.19427598837851448, 0.14570699128388587, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.04856899709462862, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
-
-	# print(len(xs),len(ys), len(zs[0]))
-
-	xlabel = propellant + " " + r'$\rho$' + " (g/cm" r'$^3$' + ")"
+	xlabel = propellant.capitalize() + " " + r'$\rho$' + " (g/cm" r'$^3$' + ")"
 	ylabel = "Alpha energy (MeV)"
 	zlabel = "Stopping Range (mm)"
 	# plt.xlabel(xlabel)
@@ -98,7 +89,7 @@ def plotter(densities, RI_densities, energies, SRList):
 
 
 	ax1.set_xlim([min(xs),max(xs)])
-	# axes.set_zlim([0,20])
+	ax1.set_ylim([0,40])
 	ax1.set_xlabel(xlabel)
 	ax1.set_ylabel(zlabel)
 	ax1.set_title(zlabel + " vs " + xlabel)
@@ -116,15 +107,19 @@ def plotter(densities, RI_densities, energies, SRList):
 			   "Cm244, energy = " + str(ys[4]) + " MeV"),
 				loc=1)
 	# plt.draw() 
-	# fig.savefig(propellant + "_plots/" + propellant + "_SR_vs_density.pdf", bbox_inches='tight') # save as pdf
+	# fig.savefig("/home/nasa01/Documents/howe_internship/axis/AXIS_Report_I_Plots/" + propellant + "_SR_vs_density.pdf", bbox_inches='tight') # save as pdf
 
-	plt.show()
+	# plt.show()
 
 
 # bracket dimensions based on Cm244 (max) and Po209 (min)
 y1s = []
 y2s = []
 
+def compute_thrust(prop_mass, mRI_0, t_ionize, t_HL):
+	Isp = 3000 # s
+	v_e = Isp*9.8 # m/s
+	
 
 def ioniz_plotter(densities, energies, totalIonizNumList, prop_molar_mass, ax_plt):
 
@@ -161,9 +156,10 @@ def ioniz_plotter(densities, energies, totalIonizNumList, prop_molar_mass, ax_pl
 
 	half_lives = np.multiply([109, 2.9, 432.2, 97.8, 18.1], 3.1536e7)	# s Po209, Po208,  Am241, Pu238, Cm244
 	num_full_ionizations = 1e6 				# number of full-chamber ionizations the RI should be capable of producing
-	time_to_ionize = 1 					# time to fully ionize chamber, s
+	time_to_ionize = 1					# time to fully ionize chamber, s
 	duration = np.arange(0,20*3.1536e7,86400) 	#
 	RI_m0 = 1									# inital mass, g
+	N_A = 6.02e23 								#
 
 	RI_mass_vs_density_slopes = []
 	densityRange_test = np.arange(0,max(xs),0.0001)
@@ -199,9 +195,17 @@ def ioniz_plotter(densities, energies, totalIonizNumList, prop_molar_mass, ax_pl
 		# Prop density vs t throughout mission duration
 		Prop_mass_mission = np.multiply(np.exp(np.multiply(duration,np.float(-0.693/half_life))), np.float(0.693*RI_m0*time_to_ionize/(half_life*np.float(lm.coef_[0]))))
 
+		# TIME-DEPENDENT PROPELLANT MASS
 		Prop_mass_mission_test = np.multiply(np.exp(np.multiply(duration,np.float(-0.693/half_life))), 
-											 np.float(0.693*RI_m0*prop_molar_mass*max(ionizations_per_alpha)*time_to_ionize/(RI_molar_mass*half_life)))
+											 np.float(0.693*RI_m0*prop_molar_mass*max(ionizations_per_alpha)*time_to_ionize/(RI_molar_mass*half_life))) 
 		# time_to_ionize = np.divide(num_alphas_full_chamber,np.multiply(RI_mass_full_chamber,spec_rad*num_full_ionizations)) # time in s
+
+
+		# PROPELLANT MASS FLOW RATE
+		Prop_mdot_mission = np.multiply(Prop_mass_mission_test, 0.693/half_life) # kg/s
+
+		# PROPELLANT MASS FLOW RATE USING SPECIFIC ACTIVITY
+		Prop_mdot_mission_A = np.multiply(np.exp(np.multiply(duration,np.float(-0.693/half_life))), prop_molar_mass*max(ionizations_per_alpha)*spec_rad*RI_m0/N_A)
 
 		# Prop_mass_mission = np.multiply(Prop_density_mission,Chamber_volume)
 		RI_mass_full_chamber_test = np.multiply(densityRange_test,lm.coef_[0])
@@ -213,7 +217,9 @@ def ioniz_plotter(densities, energies, totalIonizNumList, prop_molar_mass, ax_pl
 		# ax.plot(Propellant_densities, np.multiply(time_to_ionize,1e3)) # time in ms
 		# ax.plot(Propellant_densities,Propellant_mass_per_RI_mass)
 		# ax.plot(RI_mass_full_chamber,Propellant_mass)
-		ax.plot(np.divide(duration,3.1536e7), np.multiply(Prop_mass_mission_test,1e6/Chamber_volume)) # prop mass in ug
+		# ax.plot(np.divide(duration,3.1536e7), np.multiply(Prop_mass_mission_test,1e-3)) # prop mass in kg
+		ax.plot(np.divide(duration,3.1536e7), np.multiply(Prop_mdot_mission_A,1e3)) # prop mass mg/s
+
 
 		if alpha_energy == 5.5: # Am241, max
 			y1s.append(max(RI_mass_full_chamber_test)*1e6)
@@ -230,10 +236,12 @@ def ioniz_plotter(densities, energies, totalIonizNumList, prop_molar_mass, ax_pl
 	# zlabel = propellant + " mass (" + r'$\mu$' + "g)"
 
 	xlabel = "t (years)"
-	zlabel = propellant.capitalize() + " m" r'$_{P}$'+ " (" + r'$\mu$' + "g)"
+	# zlabel = propellant.capitalize() + " m" r'$_{P}$'+ " (kg)"
+	zlabel = propellant.capitalize() + " " r'$\dot{m}_{P}$'+ " (mg/s)"
+	# zlabel = propellant.capitalize() + " m" r'$_{P}$'+ " (" + r'$\mu$' + "g)"
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel(zlabel)
-	ax.set_title(zlabel + " vs " + xlabel + " (first-ionized)")
+	ax.set_title("       " + zlabel + " vs " + xlabel + " (first-ionized)", y=1.04)
 	ax.legend(("Po209, energy = " + str(ys[0]) + " MeV", 
 			   "Po208, energy = " + str(ys[1]) + " MeV", 
 			   "Am241, energy = " + str(ys[2]) + " MeV",
@@ -245,6 +253,7 @@ def ioniz_plotter(densities, energies, totalIonizNumList, prop_molar_mass, ax_pl
 	xlabel = r'$\rho_{P}$' + " (g/cm" r'$^3$' + ")"
 	# xlabel = propellant + " (propellant) mass (g)"
 	# zlabel = "Number of alphas needed for full ionization"
+	# zlabel = propellant.capitalize() + " m" r'$_{P}$'+ " kg)"
 	zlabel = r'$\Delta$' + "m" r'$_{RI}$' + " (" + r'$\mu$' + "g)"
 	ax_plt.set_xlabel(xlabel)
 	ax_plt.set_ylabel(zlabel)
@@ -256,15 +265,16 @@ def ioniz_plotter(densities, energies, totalIonizNumList, prop_molar_mass, ax_pl
 			   "Cm244, energy = " + str(ys[4]) + " MeV"),
 				loc=2)
 	ax.grid()
-	ax.text(12,.8*np.mean(ax.get_ylim()), r'$M_{0}$'+ ' = ' + str(RI_m0) + ' g' + "\n" + r'$\Delta$' + r'$t_{ionize}$' + ' = ' + str(time_to_ionize) + ' s',fontsize=20)
+	# ax.text(12,.8*np.mean(ax.get_ylim()), r'$M_{0}$'+ ' = ' + str(RI_m0) + ' g' + "\n" + r'$\Delta$' + r'$t_{ionize}$' + ' = ' + str(time_to_ionize) + ' s',fontsize=20)
+	ax.text(12,.8*np.mean(ax.get_ylim()), r'$M_{0}$'+ ' = ' + str(RI_m0) + ' g',fontsize=20)
 
 	# plt.draw() 
 	RI_mass_plt_file_name = propellant + "_plots/" + propellant + "_RI_mass_vs_density.pdf"
 	first_IE_plt_file_name = propellant + "/" + propellant + "_first_IE_vs_density.pdf"
 	mean_IE_plt_file_name = propellant + "/" + propellant + "_mean_IE_vs_density.pdf"
 	# prop_mass_plt_file_name = propellant + "_plots/" + propellant + "_prop_mass_vs_mission_time__first.pdf"
-	prop_mass_plt_file_name = "/home/nasa01/Documents/howe_internship/axis/AXIS_Report_I_Plots/" + propellant + "_prop_mass_vs_mission_time__first.pdf"
-	# fig.savefig(prop_mass_plt_file_name, bbox_inches='tight') # save as pdf
+	prop_mdot_plt_file_name = "/home/nasa01/Documents/howe_internship/axis/AXIS_Report_II_Plots/" + propellant + "_prop_mdot_vs_mission_time__first.pdf"
+	fig.savefig(prop_mdot_plt_file_name, bbox_inches='tight') # save as pdf
 	print(RI_mass_vs_density_slopes)
 	# plt.show()
 
@@ -290,7 +300,7 @@ def alpha_en_vs_IE():
 	ylabel = "I"
 	ax3.set_xlabel(xlabel)
 	ax3.set_ylabel(ylabel + " (millions of ionizations)")
-	ax3.set_title(ylabel + " vs " + xlabel + " (first-ionized)")
+	ax3.set_title(ylabel + " vs " + xlabel + " (mean-ionized)")
 	ax3.grid()
 	ax3.legend(prop_names, loc=4)
 
@@ -337,6 +347,8 @@ def main(propellant, ax_plt, densityRange):
 		if propellant == "iodine":
 			# iEnergy_T = 3.766314e+19 # total ionization energy per mol of propellant MeV
 			prop_molar_mass = 126.90447 # g/mol
+		if propellant == "lithium":
+			prop_molar_mass = 6.941 # g/mol
 
 		ioniz_nums = read_data(total_first_Ioniz_file)
 		# ioniz_nums = read_data(total_mean_Ioniz_file)
@@ -349,7 +361,7 @@ def main(propellant, ax_plt, densityRange):
 		totalIonizNumList.append(total_ioniz_nums)
 		# print stopping_ranges
 
-	# plotter(densityRange, RI_densities, energyRange, SRList)
+	# plotter(densityRange, energyRange, SRList)
 	ioniz_plotter(densityRange, energyRange, totalIonizNumList, prop_molar_mass, ax_plt)
 
 def CurlyBrace(color, ll_corner=(0, 0), width=1, height=1): # from https://stackoverflow.com/questions/52767053/making-annotations-on-axis-of-heatmaps 
@@ -373,6 +385,7 @@ if __name__ == '__main__':
 
 	# alpha_en_vs_IE()
 	propellants_list = ["cesium", "bismuth", "xenon", "mercury", "iodine"]
+
 	NUM_COLORS = 5 # num of radioisotopes
 	cm = plt.get_cmap('flag')
 	# cm = plt.get_cmap('Paired')
@@ -381,12 +394,13 @@ if __name__ == '__main__':
 	ax_plt.grid()
 	ax_plt.set_prop_cycle('color', [cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
 
-  	# densityRange =  list(np.arange(0.006,.05, .0001))
+  	# densityRange_2 =  list(np.arange(0.006,.05, .0001))
 	# densityRange_2 = list(np.arange(0.003,.05, .0001)) #use for SR, mean
 	densityRange_2 = list(np.arange(0.003,.015, .0001)) # use for first ioniz
 
 	for propellant in propellants_list:
 		main(propellant, ax_plt, densityRange_2)
+		# plt.show()
 
 	# widths = [3,1.5,3,1.5,1]
 	# widths = [1,1.5,1,1.5,1]

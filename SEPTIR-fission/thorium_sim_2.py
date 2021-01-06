@@ -14,10 +14,15 @@ import g4py.EMSTDpl
 import g4py.ParticleGun, g4py.MedicalBeam
 
 ### python imports
-
+import collections
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
+import os
+plt.rc('font',family='Times New Roman')
 import numpy as np
-import time 
-
+import pymouse
+import time
 ### python file imports
 
 from visualizer import Visualizer as VIS
@@ -304,7 +309,7 @@ def setup():
 
 def set_prop(prop_gas):
 	g4py.ezgeom.SetWorldMaterial(prop_gas)
-	g4py.ezgeom.ResizeWorld(500.*mm, 500.*mm, 500.*mm)
+	g4py.ezgeom.ResizeWorld(5000000.*m, 5000000.*m, 5000000.*m)
 
 
 class MyPrimaryGeneratorAction(G4VUserPrimaryGeneratorAction):
@@ -375,7 +380,7 @@ class MySteppingAction(G4UserSteppingAction):
 	deltaEnergy = step.GetDeltaEnergy() 
 	ionizingEnergy = totalEnergyDeposit - nonIonizingEnergyDeposit
 
-	print "process", procName, ionizingEnergy, deltaEnergy
+	# print "process", procName, ionizingEnergy, deltaEnergy
 
 	energyLevel = "mean"
 	# energyLevel = 1
@@ -434,36 +439,46 @@ def main():
 	prop_dict = {"cesium" : 	(55., 132.90545), 
 				 "bismuth" : 	(83., 208.9804), 
 				 "mercury" : 	(80., 200.59), 
-				 "xenon" : 		(53., 126.90447), 
-				 "iodine" : 	(54., 131.293)}
+				 "xenon" : 		(54., 131.293), 
+				 "iodine" : 	(53., 126.90447)}
 
 
 	setup()
 	gRunManager.Initialize()
 	for prop in ["cesium", "bismuth","mercury","xenon","iodine"]:
 		SGD.set_ionization_energies(prop)
-		for density in list(np.arange(0.02,.05, .001)):
+		
+		ion_ioniz_filename = prop + "_data/mean_ionization_Rb98.txt" # <<<<<<<------- mean or 1st IE
+		# os.system("rm " + ion_ioniz_filename)
+		os.system("touch " + ion_ioniz_filename)
+		# time.sleep(5)
+		# open(ion_ioniz_filename).close()
+		ion_ioniz_file = open(ion_ioniz_filename, "a")
 
-			prop_gas = G4Material(prop + "_" + str(density), 
-						  prop_dict[prop][0], 
-						  prop_dict[prop][1]*g/mole, 
-						  density*g/cm3)
-			set_prop(prop_gas)
+		density = 0.00000001
 
-			VIS().visualizer(45, 45, "viewer")
-			# gRunManager.BeamOn(1)
+		prop_gas = G4Material(prop + "_" + str(density), 
+					  prop_dict[prop][0], 
+					  prop_dict[prop][1]*g/mole, 
+					  density*g/cm3)
+		set_prop(prop_gas)
 
-			myEA= MyEventAction()
-			gRunManager.SetUserAction(myEA)
+		VIS().visualizer(45, 45, "viewer")
+		# gRunManager.BeamOn(1)
 
-			mySA= MySteppingAction()
-			gRunManager.SetUserAction(mySA)
+		myEA= MyEventAction()
+		gRunManager.SetUserAction(myEA)
 
-			gControlExecute("gun.mac")
+		mySA= MySteppingAction()
+		gRunManager.SetUserAction(mySA)
 
-			ion_ioniz, elec_ioniz = GGD.get_total_ioniz_num()
-			print ion_ioniz
-			time.sleep(2)
+		gControlExecute("gun.mac")
+
+		ion_ioniz, elec_ioniz = GGD.get_total_ioniz_num()
+		total_ioniz = ion_ioniz + elec_ioniz
+		ion_ioniz_file.writelines(str(total_ioniz)+"\n")
+		print ion_ioniz
+			# time.sleep(2)
 
 if __name__ == '__main__':
 	main()

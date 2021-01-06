@@ -47,8 +47,8 @@ class SpaceConstructor(object):
 	def __init__(self):
 		g4py.NISTmaterials.Construct()
 		g4py.ezgeom.Construct()
-		exN03PL = g4py.EMSTDpl.PhysicsListEMstd()
-		gRunManager.SetUserInitialization(exN03PL)
+		# exN03PL = g4py.EMSTDpl.PhysicsListEMstd()
+		# gRunManager.SetUserInitialization(exN03PL)
 		xe = gNistManager.FindOrBuildMaterial("G4_Xe") # USE THIS MATERIAL MANAGER
 		au = G4Material.GetMaterial("G4_Au", 1)
 
@@ -87,7 +87,9 @@ class Main(object):
 			if prop == "iodine":
 				prop_gas = G4Material("prop_iodine", 53., 126.90447*g/mole, d*g/cm3)
 			if prop == "xenon":
-				prop_gas = G4Material("gaseousProp", 54., 131.293*g/mole, d*g/cm3)
+				prop_gas = G4Material("prop_xenon", 54., 131.293*g/mole, d*g/cm3)
+			if prop == "lithium":
+				prop_gas = G4Material("prop_lithium", 3., 6.941*g/mole, d*g/cm3)
 
 			print prop, "\n"
 
@@ -96,6 +98,10 @@ class Main(object):
 			SGD.set_ionization_energies(prop)
 			g4py.ezgeom.SetWorldMaterial(prop_gas)
 			# alphaEnergy = 5.49 # MeV
+
+			# gApplyUICommand("/run/initialize")
+			gRunManager.Initialize()
+
 			PGA_1 = MyPrimaryGeneratorAction(particle, particleEnergy, MeV, particleCount, [1,0,0])
 			gRunManager.SetUserAction(PGA_1)
 			myEA = MyEventAction()
@@ -105,6 +111,8 @@ class Main(object):
 			VIS.visualizer(viz_theta, viz_phi, self.name)
 			myRA = MyRunAction()
 			gRunManager.SetUserAction(myRA)
+
+
 			gRunManager.Initialize()
 			gRunManager.BeamOn(1)
 
@@ -185,6 +193,7 @@ if __name__ == '__main__':
 	# propellants = ["cesium"]
 	# energyRange = [5.5]
 	propellants = ["cesium", "bismuth","mercury","xenon","iodine"]
+	# propellants = ["lithium"]
 	energyRange = [4.9,5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
 
 	# energyRange = [5.3,4.9,5.1,5.6,5.8,5.5] # Bcq Po210, Po209, Po208, Pu238, Cm244, Am241
@@ -201,16 +210,37 @@ if __name__ == '__main__':
 
 	stoppingRangesList = []
 
+	# g4py.EMSTDpl.Construct()
 	gRunManager.SetUserInitialization(physicsList)
+	g4py.ParticleGun.Construct()
+
 	# gApplyUICommand("/process/em/fluo true")
 	# gApplyUICommand("/process/em/auger true")
 	# gApplyUICommand("/process/em/augerCascade truegApplyUICommand")
 	# gApplyUICommand("/process/em/pixe true")
 	viewer_name = "alpha_beam"
-	# particle = "GenericIon"
-	particle = "alpha"
+	particle = "GenericIon"
+	# particle = "alpha"
 	# particle = "e+"
 	# particle = "proton"
+	gRunManager.Initialize()
+
+
+	# gApplyUICommand("/gun/number 1")
+	# gApplyUICommand("/gun/particle e-")
+	# gApplyUICommand("/gun/energy 0.2 MeV")
+	# gApplyUICommand("/gun/direction 0. 0.  1.")
+	# gApplyUICommand("/gun/position 0. -5. -30. cm")
+
+	# G4ParticleGun(1).SetParticleByName("GenericIon")
+
+	# gApplyUICommand("/gun/particle ion")
+	# gApplyUICommand("/gun/ion 92 233 0")
+	# gApplyUICommand("/gun/energy 90 MeV")
+	# gApplyUICommand("/gun/position 0. 0. 0. m")
+
+	# time.sleep(2)
+
 	MN = Main(viewer_name)
 	GGD
 	# gApplyUICommand("/vis/sceneHandler/create OGLSX OGLSX")
@@ -260,9 +290,9 @@ if __name__ == '__main__':
 			# elec_file = open(elec_num_filename, "a")
 
 			# Holds number of alpha and e- induced ionizations
-			total_ionization_num_filename = prop + "2/"+str(e)+"_first_ionization_num.txt"
+			total_ionization_num_filename = prop + "2/"+str(e)+"_ionization_num.txt"
 			os.system("touch " + total_ionization_num_filename)
-			open(total_ionization_num_filename).close()
+			# open(total_ionization_num_filename).close()
 			total_ioniz_file = open(total_ionization_num_filename, "a")
 
 			# e = 5.49

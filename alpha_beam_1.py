@@ -2,6 +2,7 @@
 from Geant4 import * 
 from Geant4 import FTFP_BERT, QGSP_BERT, QGSP_BERT_HP, QGSP_BIC_AllHP
 from Geant4 import G4ParticleTable, G4PrimaryParticle, G4PrimaryVertex
+# import g4py.GeneralParticleSource
 
 
 
@@ -63,6 +64,8 @@ class SetGlobalData(object):
 			ioniz_energies_list = [12.13e-6,21.21e-6,32.12e-6] # MeV
 		if propellant == "iodine":
 			ioniz_energies_list = [10.45e-6,19.13e-6,32.96e-6] # MeV
+		if propellant =="lithium":
+			ioniz_energies_list = [5.3915e-6,75.64e-6,122.45e-6] # MeV
 
 class GetGlobalData(object):
 
@@ -263,11 +266,6 @@ class DataAnalysis(object):
 		plt.title("Stopping power of propellant")
 		plt.show()
 
-
-
-
-
-
 DA = DataAnalysis()
 
 '''																									     											   '''
@@ -278,14 +276,19 @@ DA = DataAnalysis()
    #																																				   #
 '''																									    											   '''
 
+# class SeptirFissionProductGenerator(G4VUserPrimaryGeneratorAction):
+
+# 	def __init__(self):
+
 
 class MyPrimaryGeneratorAction(G4VUserPrimaryGeneratorAction):
 	"My Primary Generator Action"
 
 	def __init__(self, particle, energy, energyUnit, emitterCount, momentumArray):
 		G4VUserPrimaryGeneratorAction.__init__(self)
+		# self.ionGun = G4IonGun(1)
 		self.particleGun_outer = G4ParticleGun(1)
-		# self.particleGun_inner = G4ParticleGun(1)
+		# gps = g4py.GeneralParticleSource.Construct()
 		self.energy = energy
 		self.energyUnit = energyUnit
 		self.emitterCount = emitterCount
@@ -301,7 +304,12 @@ class MyPrimaryGeneratorAction(G4VUserPrimaryGeneratorAction):
 		energyUnit = self.energyUnit 
 		dimensionUnit = cm
 		energy = self.energy
-		self.particleGun_outer.SetParticleByName(self.particle) # define particle
+		self.particleGun_outer.SetParticleByName("U233") # define particle
+		# self.particleGun_outer.SetParticleByName("ion 92 233")
+		# gApplyUICommand("/gun/particle ion 92 233")
+		# gApplyUICommand("/gun/ion 92 233")
+		print("\n\n\n\n\n\n")
+		time.sleep(1)
 		self.particleGun_outer.SetParticleEnergy(energy*energyUnit) # define particle energy 
 		# self.particleGun_inner.SetParticleByName(self.particle) # define particle
 		# self.particleGun_inner.SetParticleEnergy(energy*energyUnit) # define particle energy 
@@ -326,13 +334,22 @@ class MyPrimaryGeneratorAction(G4VUserPrimaryGeneratorAction):
 
 		## Random generation from a point
 		locationArray = [0,0,0]
+		# gApplyUICommand("/gun/particle ion")
+		# gApplyUICommand("/gun/energy 90 MeV")
+
 		for i in range(0, self.emitterCount): # creates random momentum vectors originating from [0, 0, 0]
 			mx = random.uniform(-1,1)
 			my = random.uniform(-1,1)
 			mz = random.uniform(-1,1)
 			momentumArray = [mx, my, mz]
 			self.particleGun_outer.SetParticlePosition(G4ThreeVector(locationArray[0], locationArray[1], locationArray[2])*dimensionUnit) # define first particle generator location
+			# gApplyUICommand("/gun/list")
+			# time.sleep(2)
+			# gApplyUICommand("/gun/position 0.0 0.0 0.0")
 			self.particleGun_outer.SetParticleMomentumDirection(G4ThreeVector(momentumArray[0], momentumArray[1], momentumArray[2])*dimensionUnit) # define first particle generator momentum
+			# gApplyUICommand("/gun/momentum " + str(mx) + " cm "
+			# 								 + str(my) + " cm "
+			# 								 + str(mz) + " cm ")
 			self.particleGun_outer.GeneratePrimaryVertex(event)
 
 		# generate emitter locations
@@ -437,8 +454,8 @@ class MySteppingAction(G4UserSteppingAction):
 
 
 		# --- calculate number of ionizations --- #
-		# energyLevel = "mean"
-		energyLevel = 1
+		energyLevel = "mean"
+		# energyLevel = 1
 		DA.calc_ionization(procName, particleName, deltaEnergy, ionizingEnergy, energyLevel)
 
 

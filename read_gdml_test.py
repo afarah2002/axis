@@ -30,7 +30,7 @@ class MyDetectorConstruction(G4VUserDetectorConstruction):
 	# -----------------------------------------------------------------
 	def Construct(self):
 		# for gdml in glob.glob("	*m.gdml"):
-		gdml = "fullmodelV10102inletbulkheadassembly10101propellantplenum2010103electricalisolator1_Aluminum.gdml"
+		gdml = "../gdmls/fullmodelV10102inletbulkheadassembly10101propellantplenum2010103electricalisolator1_Aluminum.gdml"
 			# print gdml
 		self.gdml_parser.Read(gdml)
 		# gdml = "fullmodelV10202ionizerassembly1020201hollowdischargeinjectioncathode1_Aluminum.gdml"
@@ -62,28 +62,28 @@ class MyDetectorConstruction(G4VUserDetectorConstruction):
 # main
 # ==================================================================
 # set geometry
-# myDC= MyDetectorConstruction()
-# gRunManager.SetUserInitialization(myDC)
-# g4py.ezgeom.ResizeWorld(10.*cm, 10.*cm, 10.*cm)
+myDC= MyDetectorConstruction()
+gRunManager.SetUserInitialization(myDC)
+g4py.ezgeom.ResizeWorld(10.*m, 10.*m, 10.*m)
 
-# # minimal physics list
-# g4py.ExN01pl.Construct()
+# minimal physics list
+g4py.ExN01pl.Construct()
 
-# # set primary generator action
-# g4py.ParticleGun.Construct()
+# set primary generator action
+g4py.ParticleGun.Construct()
 
-# # initialize
-# gRunManager.Initialize()
+# initialize
+gRunManager.Initialize()
 
-# gApplyUICommand("/vis/sceneHandler/create OGLSX OGLSX")
-# gApplyUICommand("/vis/open OGLSX")
-# t = 45.
-# p = 45.
-# while True:
-# 	t += .5
-# 	p += .5
-# 	# visualization
-# 	gApplyUICommand("/vis/scene/create")
-# 	gApplyUICommand("/vis/scene/add/volume")
-# 	gApplyUICommand("/vis/sceneHandler/attach")
-# 	gApplyUICommand("/vis/viewer/set/viewpointThetaPhi " + str(t) + " " + str(p))
+gApplyUICommand("/vis/sceneHandler/create OGLSX OGLSX")
+gApplyUICommand("/vis/open OGLSX")
+t = 45.
+p = 45.
+while True:
+	t += .5
+	p += .5
+	# visualization
+	gApplyUICommand("/vis/scene/create")
+	gApplyUICommand("/vis/scene/add/volume")
+	gApplyUICommand("/vis/sceneHandler/attach")
+	gApplyUICommand("/vis/viewer/set/viewpointThetaPhi " + str(t) + " " + str(p))
