@@ -14,6 +14,7 @@ plt.rcParams["font.family"] = "Times New Roman"
 mpl.rcParams.update({'font.size': 14})
 rc('text', usetex=True)
 
+#-----------------classes-----------------#
 class Constants(object):	#-----------------CONSTANTS USED IN SCRIPT-----------------#
 	#-----------------assumes 100% ionization in chamber-----------------#
 	pct_chamber_ionized = 1
@@ -46,6 +47,7 @@ class Constants(object):	#-----------------CONSTANTS USED IN SCRIPT-------------
 	#-----------------saved file directory-----------------#
 	saved_file_directory = "/home/nasa01/Documents/howe_internship/axis/AXIS_Report_II_Plots/"
 	save_bool = False
+
 class Radioisotope(object):
 
 	def __init__(self, name, atomic_number, molar_mass, half_life, specific_activity, alpha_energy):
@@ -71,12 +73,15 @@ class Calculator(object):
 		mdot = np.multiply(prop_molar_mass*max_ionizations_per_alpha*spec_rad*Constants().RI_m0/Constants().N_A,
 										  np.exp(np.multiply(Constants().duration,
 										  					 np.float(-0.693/half_life))))
+		# mTotal = 
+
 		Fthrust = mdot*Isp*Constants().g0
 
 		results_dict = dict(zip(Constants().plotted_data_list,
 								[mdot, Fthrust]))
 
 		return results_dict[Constants().plotted_data]
+
 class MaterialAssignment():
 
 	def __init__(self):
@@ -85,6 +90,7 @@ class MaterialAssignment():
 	def assign(self):
 		#-----------------MATERIAL ASSIGNMENT-----------------#
 		#-----------------radioisotopes-----------------#
+		# *** Half life input is years, output is seconds
 		Po209 = Radioisotope("Po209",84,208.9824,109,0.63e12,4.9)
 		Po208 = Radioisotope("Po208",84,207.9812,2.9,21.8e12,5.1)
 		Am241 = Radioisotope("Am241",95,241.05683,432.2,0.126e12,5.5)
@@ -183,7 +189,7 @@ class DataProcessor(object):
 			tag = ""
 
 		totalIonizNumList = []
-		total_Ioniz_file = propellant.name + "2/" + \
+		total_Ioniz_file = "data/" + propellant.name + "2/" + \
 								str(radioisotope.energy) + \
 								tag + "_ionization_num.txt"
 
@@ -211,14 +217,23 @@ def main():
 	#-----------------generate materials-----------------#
 	radioisotope_list, propellants_list = MaterialAssignment().assign()
 
+	#-----------------generate array of RI/prop combos-----------------#
 	prop_RI_combos = np.array(list(itertools.product(radioisotope_list,propellants_list)), dtype=object)
+
+	#-----------------apply calculations for each combo-----------------#
 	prop_RI_combos_calc = np.array(np.apply_along_axis(DataProcessor().process1, 1, prop_RI_combos))
+
+	#-----------------sort combos alphabetically for easy reading-----------------#
 	prop_RI_combos_calc_sorted = np.array(sorted(prop_RI_combos_calc, key=lambda x: x[0])).reshape(5,5,2)
 
+	#-----------------generate plot for each propellant-----------------#
 	for prop in prop_RI_combos_calc_sorted:
 		propellant = prop[0][0]
 		prop_plot_data = [propellant] + list(np.concatenate(prop)[1::2])
 		XYPlotter(prop_plot_data)
+		
+	#-----------------show plots-----------------#
+	plt.show()
 
 if __name__ == '__main__':
 	main()
