@@ -15,7 +15,8 @@ mpl.rcParams.update({'font.size': 14})
 rc('text', usetex=True)
 
 #-----------------classes-----------------#
-class Constants(object):	#-----------------CONSTANTS USED IN SCRIPT-----------------#
+class Constants(object):
+	#-----------------CONSTANTS USED IN SCRIPT-----------------#
 	#-----------------assumes 100% ionization in chamber-----------------#
 	pct_chamber_ionized = 1
 	#-----------------num of alphas used in G4 sim-----------------#
@@ -23,17 +24,21 @@ class Constants(object):	#-----------------CONSTANTS USED IN SCRIPT-------------
 	#-----------------chmaber volume from prelim CAD model, 1P unit-----------------#
 	Chamber_volume = pct_chamber_ionized*(np.pi*2**2)*4 # cm3
 	#-----------------mission duration, 20 years in seconds-----------------#
-	duration = np.arange(0,20*3.1536e7,86400) # s
-	#-----------------initial radioisotope mass, proportional to propellant mass flow rate-----------------#
-	RI_m0 = 1 # g
-	#-----------------avogadro's number-----------------#
-	N_A = 6.02e23 # atoms/mol
+	duration = np.arange(0,10*3.1536e7,86400) # s
+	#-----------------initial radioisotope mass (g), proportional to propellant mass flow rate-----------------#
+	RI_m0 = 1.
+	#-----------------spacecraft initial mass (g)-----------------#
+	S_m0 = 750. 
+	#-----------------zeta, propellant mass fraction-----------------#
+	zeta = .2
+	#-----------------avogadro's number (atoms/mol)-----------------#
+	N_A = 6.02e23 
 	#-----------------first/mean ionization efficiencies-----------------#
 	first_or_mean = "mean"
 	#-----------------plot bounds-----------------#
-	xbounds = [0,20] # years
-	ybounds = [0,7] # mg/s
-	ybounds_Bool = False
+	xbounds = [0,max(duration)/3.1536e7] # years
+	ybounds = [0,3] # mg/s
+	ybounds_Bool = True 
 	#-----------------Isp (s)-----------------#
 	Isp_BIT1 = 1600
 	Isp_BIT3 = 2100
@@ -43,7 +48,7 @@ class Constants(object):	#-----------------CONSTANTS USED IN SCRIPT-------------
 	g0 = 9.8 
 	#-----------------plotted data-----------------#
 	plotted_data_list = ["mdot", "Fthrust"]
-	plotted_data = "Fthrust"
+	plotted_data = "mdot"
 	#-----------------saved file directory-----------------#
 	saved_file_directory = "/home/nasa01/Documents/howe_internship/axis/AXIS_Report_II_Plots/"
 	save_bool = False
@@ -58,27 +63,43 @@ class Radioisotope(object):
 		self.HL = half_life*3.1536e7 # ** years to seconds
 		self.SA = specific_activity
 		self.energy = alpha_energy
+
 class Propellant(object):
 
 	def __init__(self, name, atomic_number, molar_mass):
 		self.name = name
 		self.Z = atomic_number
 		self.M = molar_mass
+
 class Calculator(object):
 
 	def __init__(self):
 		pass
 
 	def calc(self, prop_molar_mass, max_ionizations_per_alpha, spec_rad, half_life,Isp):
-		mdot = np.multiply(prop_molar_mass*max_ionizations_per_alpha*spec_rad*Constants().RI_m0/Constants().N_A,
-										  np.exp(np.multiply(Constants().duration,
-										  					 np.float(-0.693/half_life))))
-		# mTotal = 
+		#-----------------common throughout calcs, declared here-----------------#
+		coefficient = prop_molar_mass*max_ionizations_per_alpha*spec_rad*Constants().RI_m0/Constants().N_A
 
-		Fthrust = mdot*Isp*Constants().g0
+		#-----------------propellant mass flow rate (g/s)-----------------#
+		mdot = np.multiply(coefficient, np.exp(np.multiply(Constants().duration, np.float(-0.693/half_life))))
+
+		#-----------------total propellant mass that can be ionized and ejected (g)-----------------#
+		mTotal = -coefficient*half_life*(np.exp(-0.693*max(Constants().duration)/half_life)-1)/0.693
+
+		#-----------------time-dependent thrust (N)-----------------#
+		Fthrust = mdot*Isp*Constants().g0/1000 # convert mdot from g/s to kg/s
+
+		#-----------------delta v calc from propellant mass-----------------#
+		del_v = Isp*Constants().g0*np.log(Constants().S_m0/(Constants().S_m0 - Constants().S_m0*Constants().zeta))
+		
+		#-----------------time when prop runs out (years)-----------------#
+		t_empty = -half_life/0.693*np.log(1 - (Constants().S_m0*Constants().zeta*0.693/(half_life*coefficient)))*1.15741e-5
 
 		results_dict = dict(zip(Constants().plotted_data_list,
 								[mdot, Fthrust]))
+
+
+		# print "Del v ", del_v, " m/s"
 
 		return results_dict[Constants().plotted_data]
 
@@ -97,16 +118,17 @@ class MaterialAssignment():
 		Pu238 = Radioisotope("Pu238",94,238.04956,97.8,0.643e12,5.6)
 		Cm244 = Radioisotope("Cm244",96,244.06275,18.1,3.03e12,5.8)
 		#-----------------propellants-----------------#
-		cesium = Propellant("cesium",55,132.90545)
-		bismuth = Propellant("bismuth",83,208.9804)
-		xenon = Propellant("xenon",54,208.9804)
-		mercury = Propellant("mercury",80,208.9804)
-		iodine = Propellant("iodine",53,208.9804)
+		cesium = Propellant("cesium",55,132.91)
+		bismuth = Propellant("bismuth",83,208.98)
+		xenon = Propellant("xenon",54,131.29)
+		mercury = Propellant("mercury",80,200.59)
+		iodine = Propellant("iodine",53,126.90)
 		#-----------------------------------------------------#
 		radioisotope_list = [Po209,Po208,Am241,Pu238,Cm244]
 		propellants_list = [cesium,bismuth,xenon,mercury,iodine]
 
 		return radioisotope_list, propellants_list
+
 class XYPlotter(object):
 	def __init__(self, plot_data_list):
 		#-----------------initialize plot-----------------#
@@ -122,7 +144,7 @@ class XYPlotter(object):
 
 		#-----------------plot each RI data set-----------------#
 		for y in ydata:
-			# y *= 1000 # g/s to mg/s
+			y *= 1000 # g/s to mg/s, N to mN
 			self.subplot.plot(x,y)
 
 		#-----------------plot parameters-----------------#
@@ -130,7 +152,7 @@ class XYPlotter(object):
 		if Constants().plotted_data == "mdot":
 			ylabel = propellant.name.capitalize() + " " r'$\dot{m}_{P}$'+ " (mg/s)"
 		if Constants().plotted_data == "Fthrust":
-			ylabel = propellant.name.capitalize() + " " r'${F}_{T}$'+ " (N)"
+			ylabel = propellant.name.capitalize() + " " r'${F}_{T}$'+ " (mN)"
 
 		self.subplot.set_xlabel(xlabel)
 		self.subplot.set_xlim(Constants().xbounds)
@@ -154,6 +176,7 @@ class XYPlotter(object):
 					   Constants().first_or_mean
 			self.fig.savefig(file_loc,bbox_inches='tight')
 			print file_loc
+
 class DataScanner(object):
 	#-----------------reads data from files-----------------#
 	def __init__(self):
@@ -173,6 +196,7 @@ class DataScanner(object):
 					instance.append(float(element))
 				full_data.append(instance)
 			return np.array(full_data).flatten()
+
 class DataProcessor(object):
 	#-----------------collects data and runs calcs funcs on it-----------------#
 	def __init__(self):
@@ -202,12 +226,15 @@ class DataProcessor(object):
 		#---------------------------------------------------------#
 		#-----------------calculate ionizations/alpha-----------------#
 		IE = max(total_ioniz_nums)/Constants().num_alphas
+		# print "IE: ", IE
 		#-----------------calc stuff w/ IE -----------------#
 		calc_data = Calculator().calc(propellant.M,
 								 IE,
 								 radioisotope.SA,
 								 radioisotope.HL,
 								 Constants().Isp_Tigris)
+
+		# print propellant.name, radioisotope.name, "\n"
 
 		
 		return propellant, [radioisotope, calc_data]
@@ -231,7 +258,7 @@ def main():
 		propellant = prop[0][0]
 		prop_plot_data = [propellant] + list(np.concatenate(prop)[1::2])
 		XYPlotter(prop_plot_data)
-		
+
 	#-----------------show plots-----------------#
 	plt.show()
 
