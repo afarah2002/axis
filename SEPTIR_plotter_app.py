@@ -9,22 +9,52 @@ from SEPTIR_plotter import MaterialAssignment
 class App(Frame):
 
 	def init(self):
-		#title and header    row=0, 1
+		#-----------------title-----------------#
 		title = Label(self, text="FIRESTORM: SEPTIR Performance Plotter")
 		title.pack()
-		# title.grid(row=0, column=1, columnspan=5)
-		header = Label(self, text="Measurement of Mass Attenuation Coefficient")
-		# header.grid(row=1, column=1, columnspan=5)
 
+		#-----------------create RI and propellant dropdown-----------------#
+
+		#-----------------set RI and propellant attributes-----------------#
 		radioisotopesList, propellantsList = MaterialAssignment().assign()
-		radioisotope = StringVar(self)
-		radioisotope.set(radioisotopesList[0])
+		self.radioisotope = radioisotopesList[0]
+		self.propellant = propellantsList[0]
 
+		#-----------------get list of RI and prop names for labelling-----------------#
+		radioisotopeNames = [RI.name for RI in radioisotopesList]
+		propellantNames = [prop.name for prop in propellantsList]
 
-		RI_dropdown = OptionMenu(self, radioisotope, *radioisotopesList)
+		#-----------------name-wise dictionaries of RIs and Props-----------------#
+		self.radioisotopeDict = dict(zip(radioisotopeNames, radioisotopesList))
+		self.propellantDict = dict(zip(propellantNames, propellantsList))
+
+		#-----------------drop downs-----------------#
+		self.radioisotopeLabel = StringVar(self)
+		self.propellantLabel = StringVar(self)
+		self.radioisotopeLabel.set(radioisotopeNames[0]) 
+		self.propellantLabel.set(propellantNames[0])
+
+		RI_dropdown = OptionMenu(self, self.radioisotopeLabel, *radioisotopeNames)
 		RI_dropdown.config(width=90, font=('Helvetica', 12))
 
+		prop_dropdown = OptionMenu(self, self.propellantLabel, *propellantNames)
+		prop_dropdown.config(width=90, font=('Helvetica', 12))
+
 		RI_dropdown.pack()
+		prop_dropdown.pack()
+
+		#-----------------Button: Get RI-----------------#
+		print_RI_Button = Button(self, text="Print RI", command=self.get_radioisotope)
+		print_RI_Button.pack()
+
+
+	def get_radioisotope(self):
+		self.radioisotope = self.radioisotopeDict.get(self.radioisotopeLabel.get())
+
+	def get_propellant(self):
+		self.propellant = self.propellantDict.get(self.propellantLabel.get())
+
+
 
 	def __init__(self, master=None):
 		Frame.__init__(self, master)

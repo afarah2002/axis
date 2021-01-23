@@ -44,7 +44,7 @@ prop_dict = {"cesium" : 	(55., 132.90545),
 			 "iodine" : 	(53., 126.90447)}
 prop_list = ["cesium", "bismuth","mercury","xenon","iodine"]
 for prop in prop_list:
-	data_file = prop + "_data/mean_ionization.txt"
+	data_file = prop + "_data/mean_ionization_Rb98.txt"
 	# total ionization is not different between the fission fragments if they have the same energy
-	total_ionization = read_data(data_file)[0]*2 
-	print prop, ionization
+	total_ionization = read_data(data_file)[0]
+	print prop, total_ionization
