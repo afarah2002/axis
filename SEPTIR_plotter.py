@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 #-----------------imports and setup-----------------#
 import itertools
 import matplotlib as mpl
@@ -25,12 +25,14 @@ class Constants(object):
 	Chamber_volume = pct_chamber_ionized*(np.pi*2**2)*4 # cm3
 	#-----------------mission duration, 20 years in seconds-----------------#
 	duration = np.arange(0,10*3.1536e7,86400) # s
+	# #-----------------travel time, years to seconds-----------------#
+	# travel_time = 5*3.1536e7
 	#-----------------initial radioisotope mass (g), proportional to propellant mass flow rate-----------------#
-	RI_m0 = 1.
+	RI_m0 = .1
 	#-----------------spacecraft initial mass (g)-----------------#
 	S_m0 = 750. 
 	#-----------------zeta, propellant mass fraction-----------------#
-	zeta = .2
+	zeta = .3
 	#-----------------avogadro's number (atoms/mol)-----------------#
 	N_A = 6.02e23 
 	#-----------------first/mean ionization efficiencies-----------------#
@@ -38,7 +40,7 @@ class Constants(object):
 	#-----------------plot bounds-----------------#
 	xbounds = [0,max(duration)/3.1536e7] # years
 	ybounds = [0,3] # mg/s
-	ybounds_Bool = True 
+	ybounds_Bool = False 
 	#-----------------Isp (s)-----------------#
 	Isp_BIT1 = 1600
 	Isp_BIT3 = 2100
@@ -48,7 +50,7 @@ class Constants(object):
 	g0 = 9.8 
 	#-----------------plotted data-----------------#
 	plotted_data_list = ["mdot", "Fthrust"]
-	plotted_data = "mdot"
+	plotted_data = "Fthrust"
 	#-----------------saved file directory-----------------#
 	saved_file_directory = "/home/nasa01/Documents/howe_internship/axis/AXIS_Report_II_Plots/"
 	save_bool = False
@@ -76,7 +78,7 @@ class Calculator(object):
 	def __init__(self):
 		pass
 
-	def calc(self, prop_molar_mass, max_ionizations_per_alpha, spec_rad, half_life,Isp):
+	def calc(self, prop_molar_mass, max_ionizations_per_alpha, spec_rad, half_life, Isp):
 		#-----------------common throughout calcs, declared here-----------------#
 		coefficient = prop_molar_mass*max_ionizations_per_alpha*spec_rad*Constants().RI_m0/Constants().N_A
 
@@ -95,11 +97,19 @@ class Calculator(object):
 		#-----------------time when prop runs out (years)-----------------#
 		t_empty = -half_life/0.693*np.log(1 - (Constants().S_m0*Constants().zeta*0.693/(half_life*coefficient)))*1.15741e-5
 
+		#-----------------travel time (s)----------------#
+		travel_time = max(Constants().duration) - t_empty
+
+		#-----------------extra RI mass (g)-----------------#
+		RI_m_extra = Constants().RI_m0/(np.exp(-0.693*travel_time/half_life)) - Constants().RI_m0
+
 		results_dict = dict(zip(Constants().plotted_data_list,
 								[mdot, Fthrust]))
 
 
-		# print "Del v ", del_v, " m/s"
+		# print "Time to empty ", t_empty, " days"
+		# print "del v ", del_v, " m/s"
+		# print "Extra RI mass", RI_m_extra, " g"
 
 		return results_dict[Constants().plotted_data]
 
@@ -175,7 +185,7 @@ class XYPlotter(object):
 					   Constants().plotted_data + "_" + \
 					   Constants().first_or_mean
 			self.fig.savefig(file_loc,bbox_inches='tight')
-			print file_loc
+			# print file_loc
 
 class DataScanner(object):
 	#-----------------reads data from files-----------------#
@@ -260,7 +270,7 @@ def main():
 		XYPlotter(prop_plot_data)
 
 	#-----------------show plots-----------------#
-	plt.show()
+	# plt.show()
 
 if __name__ == '__main__':
 	main()
