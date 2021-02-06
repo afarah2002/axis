@@ -5,6 +5,8 @@ import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.backends.backend_tkagg
 from matplotlib.figure import Figure
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
 
 #-----------------app, main class-----------------#
 from SEPTIR_plotter import MaterialAssignment, DataProcessor, Constants
@@ -14,17 +16,19 @@ class App(Frame):
 
 	def init(self):
 		#-----------------title-----------------#
-		title = Label(self, text="FIRESTORM: SEPTIR Performance Plotter")
+		self.font = ("Times New Roman", 20)
+		title = Label(self, text="FIRESTORM: SEPTIR Performance Plotter",font=self.font)
 		title.grid(row=1, column=1, sticky=W)
 
 		#-----------------set up plot-----------------#
 		self.f = Figure(figsize=(5,5), dpi= 100)
 		self.a = self.f.add_subplot(111)
+		# self.f.tight_layout(pad=1.08)
 		self.a.grid()
 		#-----------------add plot-----------------#
 		self.canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(self.f, self)
 		self.canvas.draw()
-		self.canvas.get_tk_widget().grid(row=3, column=6)
+		self.canvas.get_tk_widget().grid(row=2, column=1)
 		#-----------------add MPL toolbar-----------------#
 		# toolbar = matplotlib.backends.backend_tkagg.NavigationToolbar2TkAgg(canvas, self)
 		# toolbar.update()
@@ -51,8 +55,8 @@ class App(Frame):
 		self.radioisotopeLabel = StringVar(self)
 		self.radioisotopeLabel.set(radioisotopeNames[0]) 
 		RI_dropdown = OptionMenu(self, self.radioisotopeLabel, *radioisotopeNames)
-		RI_dropdown.config(width=10, font=('Helvetica', 12))
-		RI_dropdown.grid(row=2, column=1, sticky=W)
+		RI_dropdown.config(width=10, font=self.font)
+		RI_dropdown.grid(row=4, column=1, sticky=W)
 
 		#-----------------Propellant drop down-----------------#
 		propellantNames = [prop.name for prop in propellantsList]
@@ -61,58 +65,61 @@ class App(Frame):
 		self.propellantLabel = StringVar(self)
 		self.propellantLabel.set(propellantNames[0])
 		prop_dropdown = OptionMenu(self, self.propellantLabel, *propellantNames)
-		prop_dropdown.config(width=10, font=('Helvetica', 12))
-		prop_dropdown.grid(row=3, column=1, sticky=W)
+		prop_dropdown.config(width=10, font=self.font)
+		prop_dropdown.grid(row=5, column=1, sticky=W)
 
 		#-----------------YData drop down-----------------#
 		#-----------------mdot or Fthrust-----------------#
 		self.ydataLabel = StringVar(self)
 		self.ydataLabel.set("")
 		ydata_dropdown = OptionMenu(self, self.ydataLabel, *["mdot", "Fthrust"])
-		ydata_dropdown.config(width=10, font=('Helvetica', 12))
-		ydata_dropdown.grid(row=4, column=1, sticky=W)
+		ydata_dropdown.config(width=10, font=self.font)
+		ydata_dropdown.grid(row=6, column=1, sticky=W)
 
 
 
 		#-----------------Button: Plots mdot or thrust----------------#
-		mdot_thrust_button = Button(self, text="Plot mdot/thrust", command=self.mdot_thrust)
-		mdot_thrust_button.grid(row=9, column=6)
+		mdot_thrust_button = Button(self, text="Plot mdot/thrust", command=self.mdot_thrust, font=self.font)
+		mdot_thrust_button.grid(row=8, column=1)
 
 		#-----------------Button: mRI vs dv-----------------#
-		plot_button = Button(self, text="Plot mRI vs dV", command=self.mri_vs_dv)
-		plot_button.grid(row=10, column=6)
+		plot_button = Button(self, text="Plot mRI vs dV", command=self.mri_vs_dv, font=self.font)
+		plot_button.grid(row=9, column=1)
 		
 		#-----------------entry boxes-----------------#
 		#-----------------spacecraft mass, g-----------------#
-		spacecraft_mass_entry_Label = Label(self, text="Spacecraft mass (g)")
-		spacecraft_mass_entry_Label.grid(row=2, column=2, sticky=W)
+		spacecraft_mass_entry_Label = Label(self, text="Spacecraft mass (g)", font=self.font)
+		spacecraft_mass_entry_Label.grid(row=4, column=2, sticky=W)
 		self.spacecraft_mass_entry = Entry(self)
-		self.spacecraft_mass_entry.grid(row=2, column=3, sticky=W)
-		#-----------------RI initial mass, g-----------------#
-		RI_launch_mass_entry_Label = Label(self, text="RI launch mass (g)")
-		RI_launch_mass_entry_Label.grid(row=3, column=2, sticky=W)
+		self.spacecraft_mass_entry.grid(row=4, column=3, sticky=W)
+		#-----------------RI initial mass text box, g-----------------#
+		RI_launch_mass_text_Label = Label(self, text="RI launch mass (g)", font=self.font)
+		RI_launch_mass_text_Label.grid(row=9, column=2, sticky=W)
 		# self.RI_launch_mass_entry = Entry(self)
 		# self.RI_launch_mass_entry.grid(row=3, column=3, sticky=W)
+		#-----------------propellant mass text box, g-----------------#
+		propellant_mass_text_Label = Label(self, text="Total propellant mass (g)", font=self.font)
+		propellant_mass_text_Label.grid(row=10, column=2, sticky=W)
 		#-----------------Isp, s-----------------#
-		Isp_entry_Label = Label(self, text="Isp (s)")
-		Isp_entry_Label.grid(row=4, column=2, sticky=W)
+		Isp_entry_Label = Label(self, text="Isp (s)", font=self.font)
+		Isp_entry_Label.grid(row=5, column=2, sticky=W)
 		self.Isp_entry = Entry(self)
-		self.Isp_entry.grid(row=4, column=3, sticky=W)
+		self.Isp_entry.grid(row=5, column=3, sticky=W)
 		#-----------------delta v (m/s)-----------------#
-		dv_entry_Label = Label(self, text="dv (m/s)")
-		dv_entry_Label.grid(row=5, column=2, sticky=W)
+		dv_entry_Label = Label(self, text="dv (m/s)", font=self.font)
+		dv_entry_Label.grid(row=6, column=2, sticky=W)
 		self.dv_entry = Entry(self)
-		self.dv_entry.grid(row=5, column=3, sticky=W)
+		self.dv_entry.grid(row=6, column=3, sticky=W)
 		#-----------------burn duration, years-----------------#
-		burn_duration_entry_Label = Label(self, text="Burn duration (years)")
-		burn_duration_entry_Label.grid(row=6, column=2, sticky=W)
+		burn_duration_entry_Label = Label(self, text="Burn duration (years)", font=self.font)
+		burn_duration_entry_Label.grid(row=7, column=2, sticky=W)
 		self.burn_duration_entry = Entry(self)
-		self.burn_duration_entry.grid(row=6, column=3, sticky=W)
+		self.burn_duration_entry.grid(row=7, column=3, sticky=W)
 		#-----------------transit time, years-----------------#
-		transit_time_entry_Label = Label(self, text="Transit time (years)")
-		transit_time_entry_Label.grid(row=7, column=2, sticky=W)
+		transit_time_entry_Label = Label(self, text="Transit time (years)", font=self.font)
+		transit_time_entry_Label.grid(row=8, column=2, sticky=W)
 		self.transit_time_entry = Entry(self)
-		self.transit_time_entry.grid(row=7, column=3, sticky=W)
+		self.transit_time_entry.grid(row=8, column=3, sticky=W)
 		#---------------------------------------------#
 
 
@@ -163,7 +170,7 @@ class App(Frame):
 		# self.zeta = float(self.zeta_entry.get())
 		self.dv = float(self.dv_entry.get())
 		self.zeta = float(1-np.exp(-self.dv/(self.Isp*Constants().g0)))
-		self.burn_duration = np.arange(0,float(self.burn_duration_entry.get())*3.1536e7,86400) # **years to seconds
+		self.burn_duration = np.arange(0,float(self.burn_duration_entry.get())*3.1536e7,86400.) # **years to seconds
 		self.transit_time = float(self.transit_time_entry.get())*3.1536e7 # **years to seconds		
 		#-----------------updates GUI with new selections from dropdowns-----------------#
 		self.radioisotope = self.radioisotopeDict.get(self.radioisotopeLabel.get())
@@ -174,11 +181,13 @@ class App(Frame):
 		#-----------------update in-app text-----------------#
 		#-----------------update m_RI_T based on selected dv-----------------#
 		self.RI_mT = -(np.exp(0.693*self.transit_time/self.radioisotope.HL)*Constants().N_A/(self.propellant.M*self.IE*self.radioisotope.SA*self.radioisotope.HL)* \
-					self.S_m0/(np.exp(-0.693*(max(self.burn_duration)/self.radioisotope.HL))-1)*(1 - np.exp(self.dv/(-self.Isp*Constants().g0))))
-		#-----------------update m_RI_T text-----------------#
-		self.RI_mT_Label = Label(self, text=str(self.RI_mT))
-		self.RI_mT_Label.grid(row=3, column=3, sticky=W)
-
+					self.S_m0/(np.exp(-0.693*(float(max(self.burn_duration))/self.radioisotope.HL))-1)*(1 - np.exp(self.dv/(-self.Isp*Constants().g0))))
+		self.RI_mT_Label = Label(self, text=str(self.RI_mT), font=self.font)
+		self.RI_mT_Label.grid(row=9, column=3, sticky=W)
+		#-----------------update propellant mass text based on dv-----------------#
+		self.m_prop = self.S_m0*(1 - np.exp(-self.dv/(self.Isp*Constants().g0)))
+		self.propellant_mass_Label = Label(self, text=str(self.m_prop), font=self.font)
+		self.propellant_mass_Label.grid(row=10, column=3, sticky=W)
 		#-----------------run calc process with new data-----------------#
 		self.plotdata = DataProcessor().process2([self.radioisotope, self.propellant],
 									self.S_m0,

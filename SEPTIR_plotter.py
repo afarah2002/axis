@@ -136,22 +136,22 @@ class Calculator(object):
 		mdot = np.multiply(coefficient, np.exp(np.multiply(duration, np.float(-0.693/half_life))))
 
 		#-----------------total propellant mass that can be ionized and ejected (g)-----------------#
-		mTotal = -coefficient*half_life*(np.exp(-0.693*max(duration)/half_life)-1)/0.693
+		# mTotal = -coefficient*half_life*(np.exp(-0.693*max(duration)/half_life)-1)/0.693
 
 		#-----------------time-dependent thrust (N)-----------------#
 		Fthrust = mdot*Isp*Constants().g0/1000 # convert mdot from g/s to kg/s
 
 		#-----------------delta v calc from propellant mass-----------------#
-		del_v = Isp*Constants().g0*np.log(S_m0/(S_m0 - S_m0*zeta))
+		# del_v = Isp*Constants().g0*np.log(S_m0/(S_m0 - S_m0*zeta))
 		
 		#-----------------time when prop runs out (years)-----------------#
-		t_empty = -half_life/0.693*np.log(1 - (S_m0*zeta*0.693/(half_life*coefficient)))*1.15741e-5
+		# t_empty = -half_life/0.693*np.log(1 - (S_m0*zeta*0.693/(half_life*coefficient)))*1.15741e-5
 
 		#-----------------travel time (s)----------------#
-		travel_time = max(duration) - t_empty
+		# travel_time = max(duration) - t_empty
 
 		#-----------------extra RI mass (g)-----------------#
-		RI_m_extra = RI_m0/(np.exp(-0.693*travel_time/half_life)) - RI_m0
+		# RI_m_extra = RI_m0/(np.exp(-0.693*travel_time/half_life)) - RI_m0
 
 		results_dict = dict(zip(Constants().plotted_data_list,
 								[mdot, Fthrust]))
