@@ -182,11 +182,11 @@ class App(Frame):
 		#-----------------update m_RI_T based on selected dv-----------------#
 		self.RI_mT = -(np.exp(0.693*self.transit_time/self.radioisotope.HL)*Constants().N_A/(self.propellant.M*self.IE*self.radioisotope.SA*self.radioisotope.HL)* \
 					self.S_m0/(np.exp(-0.693*(float(max(self.burn_duration))/self.radioisotope.HL))-1)*(1 - np.exp(self.dv/(-self.Isp*Constants().g0))))
-		self.RI_mT_Label = Label(self, text=str(self.RI_mT), font=self.font)
+		self.RI_mT_Label = Label(self, text=str(round(self.RI_mT, 3)), font=self.font)
 		self.RI_mT_Label.grid(row=9, column=3, sticky=W)
 		#-----------------update propellant mass text based on dv-----------------#
 		self.m_prop = self.S_m0*(1 - np.exp(-self.dv/(self.Isp*Constants().g0)))
-		self.propellant_mass_Label = Label(self, text=str(self.m_prop), font=self.font)
+		self.propellant_mass_Label = Label(self, text=str(round(self.m_prop,3)), font=self.font)
 		self.propellant_mass_Label.grid(row=10, column=3, sticky=W)
 		#-----------------run calc process with new data-----------------#
 		self.plotdata = DataProcessor().process2([self.radioisotope, self.propellant],
