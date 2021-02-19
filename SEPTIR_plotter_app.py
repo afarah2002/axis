@@ -7,9 +7,10 @@ import matplotlib.backends.backend_tkagg
 from matplotlib.figure import Figure
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
+from scipy.optimize import curve_fit
 
 #-----------------app, main class-----------------#
-from SEPTIR_plotter import MaterialAssignment, DataProcessor, Constants
+from SEPTIR_plotter import MaterialAssignment, DataProcessor, Constants, DataScanner
 
 
 class App(Frame):
@@ -29,22 +30,10 @@ class App(Frame):
 		self.canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(self.f, self)
 		self.canvas.draw()
 		self.canvas.get_tk_widget().grid(row=2, column=1)
-		#-----------------add MPL toolbar-----------------#
-		# toolbar = matplotlib.backends.backend_tkagg.NavigationToolbar2TkAgg(canvas, self)
-		# toolbar.update()
-		# canvas._tkcanvas.grid(row=4, column=5)	
+
 		#-----------------create RI and propellant dropdown-----------------#
-
-
 		#-----------------get list of RI and prop names for labelling-----------------#
 		radioisotopesList, propellantsList = MaterialAssignment().assign()
-
-
-		#-----------------name-wise dictionaries of RIs and Props-----------------#
-
-
-
-
 		#-----------------drop downs-----------------#
 		#-----------------RI drop down-----------------#
 
@@ -85,7 +74,12 @@ class App(Frame):
 		#-----------------Button: mRI vs dv-----------------#
 		plot_button = Button(self, text="Plot mRI vs dV", command=self.mri_vs_dv, font=self.font)
 		plot_button.grid(row=9, column=1)
-		
+
+		#-----------------Button: Plots SR vs rho w/ fit-----------------#
+		plot_button = Button(self, text="Plot SR vs density", command=self.SR_fitter, font=self.font)
+		plot_button.grid(row=10, column=1)
+		#-------------------------------------------------------------#
+
 		#-----------------entry boxes-----------------#
 		#-----------------spacecraft mass, g-----------------#
 		spacecraft_mass_entry_Label = Label(self, text="Spacecraft mass (g)", font=self.font)
@@ -95,8 +89,6 @@ class App(Frame):
 		#-----------------RI initial mass text box, g-----------------#
 		RI_launch_mass_text_Label = Label(self, text="RI launch mass (g)", font=self.font)
 		RI_launch_mass_text_Label.grid(row=9, column=2, sticky=W)
-		# self.RI_launch_mass_entry = Entry(self)
-		# self.RI_launch_mass_entry.grid(row=3, column=3, sticky=W)
 		#-----------------propellant mass text box, g-----------------#
 		propellant_mass_text_Label = Label(self, text="Total propellant mass (g)", font=self.font)
 		propellant_mass_text_Label.grid(row=10, column=2, sticky=W)
@@ -128,7 +120,7 @@ class App(Frame):
 		self.update()
 		self.a.plot(np.divide(self.burn_duration,3.1536e7), np.multiply(self.plotdata,1000))
 		#-----------------plot formatting-----------------#
-		xlabel = "Time (years)"
+		xlabel = "Burn time (years)"
 		if self.ydata == "mdot":
 			ylabel = self.propellant.name.capitalize() + " " r'$\dot{m}_{P}$'+ " (mg/s)"
 		if self.ydata == "Fthrust":
@@ -159,15 +151,42 @@ class App(Frame):
 		self.a.grid()
 		self.canvas.draw()
 
+	#-----------------FITTING CURVES-----------------#
+	def rational(self, x, p, q):
+		return np.polyval(p, x) / np.polyval(q + [1.0], x)
+
+	def rational3_3(self, x, p0, p1, p2, q1, q2):
+		return self.rational(x, [p0, p1, p2], [q1, q2])
+
+	def SR_fitter(self):
+		#-----------------plots a fit of the SR vs prop rho curve-----------------#
+		#-----------------plot raw data-----------------#
+		self.update()
+		rho_list = np.arange(0.006,.05, .0001)
+		data_file = "data/" + self.propellant.name + "2/"+str(self.radioisotope.energy)+"_SR.txt"
+		SR_list = DataScanner().read_data(data_file)
+		self.a.plot(rho_list, SR_list)
+		#-----------------plot fit curve-----------------#
+		# popt, pcov = curve_fit(self.rational3_3, rho_list, SR_list, p0=(0.2, 0.3, 0.5, -1.0, 2.0), maxfev=5000)
+		# self.a.plot(rho_list, rational3_3(rho_list, *popt), 'r-', label='fit')
+
+		xlabel = r'$\rho$'+ ' (g/cm' + r'$^{3}$' + ')'
+		ylabel = r'$\alpha^{+}$' + ' Stopping Range (mm)'
+		self.a.set_xlabel(xlabel)
+		self.a.set_ylabel(ylabel)
+		self.a.set_title(ylabel + " vs " + xlabel)
+		self.a.grid()
+		self.canvas.draw()
+
+
+
 	def update(self):
 		#-----------------clear plot-----------------#
 		self.a.cla()
 
 		#-----------------updates GUI with newly entered values-----------------#
 		self.S_m0 = float(self.spacecraft_mass_entry.get())
-		# self.RI_mT = float(self.RI_launch_mass_entry.get())
 		self.Isp = float(self.Isp_entry.get())
-		# self.zeta = float(self.zeta_entry.get())
 		self.dv = float(self.dv_entry.get())
 		self.zeta = float(1-np.exp(-self.dv/(self.Isp*Constants().g0)))
 		self.burn_duration = np.arange(0,float(self.burn_duration_entry.get())*3.1536e7,86400.) # **years to seconds
