@@ -6,7 +6,7 @@
 
 ## Prerequisites
 - Python (2 or 3)
-- pip
+-- pip
 - matplotlib
 - tkinter
 - numpy
